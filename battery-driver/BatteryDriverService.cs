@@ -11,6 +11,7 @@ public class BatteryDriverService : BackgroundService
     private readonly PendingCommandManager _pendingCommands;
     private TcpConnection? _dataConnection;
     private TcpConnection? _warningConnection;
+    private DateTime _lastDataReceived;
 
     public event Action<ChannelRealData>? OnChannelData { add => _publisher.OnChannelData += value; remove => _publisher.OnChannelData -= value; }
     public event Action<AlarmData>? OnAlarm { add => _publisher.OnAlarm += value; remove => _publisher.OnAlarm -= value; }
@@ -61,6 +62,7 @@ public class BatteryDriverService : BackgroundService
 
     private void OnRawData(byte[] frame)
     {
+        _lastDataReceived = DateTime.UtcNow;
         switch (frame[0])
         {
             case 0xFD: ParseChannelData(frame); break;
@@ -72,7 +74,11 @@ public class BatteryDriverService : BackgroundService
 
     private void ParseChannelData(byte[] frame)
     {
-        if (frame.Length < 2696 || frame[0] != 0xFD) return;
+        if (frame.Length < 2696 || frame[0] != 0xFD)
+        {
+            OnError?.Invoke(new InvalidDataException($"Invalid ChannelData frame: len={frame.Length}, start=0x{frame[0]:X2}"), "ParseChannelData");
+            return;
+        }
         var voltage = new float[336];
         var current = new float[336];
         for (int i = 0; i < 336; i++)
@@ -90,7 +96,11 @@ public class BatteryDriverService : BackgroundService
 
     private void ParseAlarm(byte[] frame)
     {
-        if (frame.Length < 344 || frame[0] != 0xFE) return;
+        if (frame.Length < 344 || frame[0] != 0xFE)
+        {
+            OnError?.Invoke(new InvalidDataException($"Invalid Alarm frame: len={frame.Length}, start=0x{frame[0]:X2}"), "ParseAlarm");
+            return;
+        }
         var flags = new byte[336];
         Array.Copy(frame, 7, flags, 0, 336);
         _publisher.Publish(new AlarmData
@@ -131,12 +141,19 @@ public class BatteryDriverService : BackgroundService
                     ChannelResults = results, Timestamp = DateTime.UtcNow
                 });
                 break;
+            default:
+                OnError?.Invoke(new InvalidDataException($"Unknown 0xFF frame length: {frame.Length}"), "Dispatch0xFF");
+                break;
         }
     }
 
     private void ParseWarning(byte[] frame)
     {
-        if (frame.Length < 155 || frame[0] != 0xEA || frame[154] != 0xED) return;
+        if (frame.Length < 155 || frame[0] != 0xEA || frame[154] != 0xED)
+        {
+            OnError?.Invoke(new InvalidDataException($"Invalid Warning frame: len={frame.Length}, start=0x{frame[0]:X2}"), "ParseWarning");
+            return;
+        }
         var channels = new WarningChannel[7];
         for (int i = 0; i < 7; i++)
         {
@@ -175,8 +192,7 @@ public class BatteryDriverService : BackgroundService
 
     private async Task<AckData> SendCommandAsync(byte cabinet, byte leftRight, byte[] layerCommands, byte commandType, string? technology)
     {
-        var seqNo = _pendingCommands.NextSeqNo();
-        var task = _pendingCommands.RegisterCommand();
+        var (seqNo, task) = _pendingCommands.RegisterCommand();
 
         var frame = new byte[65];
         frame[0] = 0xFF;
@@ -189,9 +205,10 @@ public class BatteryDriverService : BackgroundService
             var techBytes = System.Text.Encoding.UTF8.GetBytes(technology);
             Array.Copy(techBytes, 0, frame, 7, Math.Min(techBytes.Length, 50));
         }
-        frame[57] = commandType;
+        // Write layer commands first, then ensure byte 57 has the command type
         if (layerCommands != null && layerCommands.Length > 0)
             Array.Copy(layerCommands, 0, frame, 57, Math.Min(layerCommands.Length, 7));
+        frame[57] = commandType; // command type always goes to byte 57
         frame[64] = 0xEF;
 
         await _dataConnection!.SendAsync(frame);
@@ -207,6 +224,7 @@ public class BatteryDriverService : BackgroundService
     public DriverStatus GetStatus() => new()
     {
         IsConnected = _dataConnection?.IsConnected ?? false,
+        LastDataReceivedAt = _lastDataReceived == default ? null : _lastDataReceived,
         PendingCommandCount = _pendingCommands.PendingCount
     };
 

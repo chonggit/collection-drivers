@@ -1,0 +1,25 @@
+machines:
+  - id: scanner_1
+    enabled: true
+    type: scanner.driver.ScannerMachine, scanner-driver
+    strategy: scanner.driver.strategies.ScannerStrategy, scanner-driver
+    handler: l99.driver.@base.Handler, base-driver
+
+    scanner.driver.ScannerMachine, scanner-driver:
+      sweep_ms: 500
+
+    scanner.driver.strategies.ScannerStrategy, scanner-driver:
+      host: "192.168.250.10"
+      port: 2001
+      mode: sync
+      retry_count: 3
+      connect_timeout_ms: 3000
+      receive_timeout_ms: 5000
+      dedup_enabled: true
+
+      protocol:
+        send_command_hex: "7374617274"
+        response_encoding: ascii
+        barcode_regex: "<p>(?<barcode>.*?)</p>"
+        regex_group_index: 1
+        frame_delimiter_hex: "0A"

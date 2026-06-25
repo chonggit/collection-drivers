@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>opcua.driver.test</RootNamespace>
+    <RootNamespace>scanner.driver.test</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\opcua-driver\opcua-driver.csproj" />
+    <ProjectReference Include="..\..\src\scanner-driver\scanner-driver.csproj" />
   </ItemGroup>
 
 </Project>

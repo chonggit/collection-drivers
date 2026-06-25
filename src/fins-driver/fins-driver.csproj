@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Reference Include="OmronFinsUDP.Net">
-      <HintPath>..\lib\OmronFinsUDP.Net.dll</HintPath>
+      <HintPath>..\..\lib\OmronFinsUDP.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
 

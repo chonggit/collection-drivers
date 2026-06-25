@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>fins_driver.test</RootNamespace>
+    <RootNamespace>opcua.driver.test</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\fins-driver\fins-driver.csproj" />
+    <ProjectReference Include="..\..\src\opcua-driver\opcua-driver.csproj" />
   </ItemGroup>
 
 </Project>

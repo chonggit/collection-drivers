@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>scanner_driver.test</RootNamespace>
+    <RootNamespace>battery_driver.test</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\scanner-driver\scanner-driver.csproj" />
+    <ProjectReference Include="..\..\src\battery-driver\battery-driver.csproj" />
   </ItemGroup>
 
 </Project>

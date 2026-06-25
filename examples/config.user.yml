@@ -1,0 +1,8 @@
+source-1: &source-1
+  battery.driver.BatteryMachine, battery-driver:
+    sweep_ms: 1000
+    net:
+      port: 13000
+      heartbeat_timeout_s: 60
+      warning_port: 13100
+      warning_heartbeat_timeout_s: 60

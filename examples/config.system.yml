@@ -1,0 +1,5 @@
+machine-base: &machine-base
+  enabled: true
+  type: battery.driver.BatteryMachine, battery-driver
+  strategy: battery.driver.strategies.BatteryTcpStrategy, battery-driver
+  handler: battery.driver.BatteryHandler, battery-driver

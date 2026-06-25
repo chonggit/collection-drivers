@@ -2,6 +2,8 @@
   <Project Path="base-driver/base-driver.csproj" />
   <Project Path="battery-driver.test/battery-driver.test.csproj" />
   <Project Path="battery-driver/battery-driver.csproj" />
+  <Project Path="fins-driver.test/fins-driver.test.csproj" />
+  <Project Path="fins-driver/fins-driver.csproj" />
   <Project Path="opcua-driver.test/opcua-driver.test.csproj" />
   <Project Path="opcua-driver/opcua-driver.csproj" />
 </Solution>

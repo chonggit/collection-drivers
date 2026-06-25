@@ -1,0 +1,23 @@
+machines:
+  - id: stacker_1
+    enabled: true
+    type: fins.driver.FinsMachine, fins-driver
+    strategy: fins.driver.strategies.FinsStrategy, fins-driver
+    handler: l99.driver.@base.Handler, base-driver
+
+    fins.driver.FinsMachine, fins-driver:
+      sweep_ms: 500
+
+    fins.driver.strategies.FinsStrategy, fins-driver:
+      remote_ip: "192.168.250.1"
+      port: 9600
+      timeout_ms: 2000
+
+      collectors:
+        - name: slot_signals
+          start_address: 100
+          length: 280
+
+        - name: scanner_signals
+          start_address: 10
+          length: 2

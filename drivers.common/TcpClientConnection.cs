@@ -8,7 +8,7 @@ public class TcpClientConnection : IDisposable
     private NetworkStream? _stream;
     private CancellationTokenSource? _disposeCts;
     private Task? _receiveTask;
-    private readonly List<byte> _recvBuffer = new();
+    private readonly ReceiveBuffer _receiveBuffer = new();
     private const int MaxReceiveBuffer = 65536;
     private volatile bool _disposed;
     private readonly SemaphoreSlim _reconnectLock = new(1, 1);
@@ -24,7 +24,12 @@ public class TcpClientConnection : IDisposable
     public event Action<Exception, string>? OnError;
     public event Action<byte[]>? OnDataReceived;
 
-    public byte[]? FrameDelimiter { get; set; }
+    /// <summary>帧分隔符（byte[]，如 0x0A=\n），委托给内部 ReceiveBuffer</summary>
+    public byte[]? FrameDelimiter
+    {
+        get => _receiveBuffer.FrameDelimiter;
+        set => _receiveBuffer.FrameDelimiter = value;
+    }
 
     public void Configure(string host, int port,
         int connectTimeoutMs = 3000, int receiveTimeoutMs = 5000)
@@ -45,7 +50,7 @@ public class TcpClientConnection : IDisposable
         await _client.ConnectAsync(Host, Port, linkedCts.Token);
         _stream = _client.GetStream();
         _client.ReceiveTimeout = ReceiveTimeoutMs;
-        _recvBuffer.Clear();
+        _receiveBuffer.Clear();
         OnConnected?.Invoke();
     }
 
@@ -63,29 +68,40 @@ public class TcpClientConnection : IDisposable
 
                 await _stream!.WriteAsync(command, ct);
 
-                while (!ct.IsCancellationRequested)
+                // 等待完整帧
+                byte[]? result = null;
+                void handler(byte[] frame) { result = frame; }
+                _receiveBuffer.OnFrameReceived += handler;
+
+                try
                 {
-                    var available = _client!.Available;
-                    if (available > 0)
+                    while (!ct.IsCancellationRequested && result == null)
                     {
-                        var buf = new byte[available];
-                        var len = await _stream.ReadAsync(buf, 0, buf.Length, ct);
-                        _recvBuffer.AddRange(buf.Take(len));
-
-                        if (_recvBuffer.Count > MaxReceiveBuffer)
+                        var available = _client!.Available;
+                        if (available > 0)
                         {
-                            _recvBuffer.Clear();
-                            throw new InvalidOperationException("ReceiveBuffer overflow");
-                        }
+                            var buf = new byte[available];
+                            var len = await _stream.ReadAsync(buf, 0, buf.Length, ct);
+                            _receiveBuffer.Append(buf.Take(len).ToArray());
 
-                        var frame = TryExtractFrame();
-                        if (frame != null) return frame;
-                    }
-                    else
-                    {
-                        await Task.Delay(10, ct);
+                            if (_receiveBuffer.BufferedBytes > MaxReceiveBuffer)
+                            {
+                                _receiveBuffer.Clear();
+                                throw new InvalidOperationException("ReceiveBuffer overflow");
+                            }
+                        }
+                        else
+                        {
+                            await Task.Delay(10, ct);
+                        }
                     }
                 }
+                finally
+                {
+                    _receiveBuffer.OnFrameReceived -= handler;
+                }
+
+                if (result != null) return result;
             }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex)
@@ -129,6 +145,8 @@ public class TcpClientConnection : IDisposable
 
     private async Task ReceiveLoop(CancellationToken ct)
     {
+        _receiveBuffer.OnFrameReceived += frame => OnDataReceived?.Invoke(frame);
+
         var buffer = new byte[4096];
         while (!ct.IsCancellationRequested && IsConnected && !_disposed)
         {
@@ -137,21 +155,13 @@ public class TcpClientConnection : IDisposable
                 var len = await _stream!.ReadAsync(buffer, 0, buffer.Length, ct);
                 if (len == 0) break;
 
-                _recvBuffer.AddRange(buffer.Take(len));
+                _receiveBuffer.Append(buffer.Take(len).ToArray());
 
-                if (_recvBuffer.Count > MaxReceiveBuffer)
+                if (_receiveBuffer.BufferedBytes > MaxReceiveBuffer)
                 {
                     OnError?.Invoke(
                         new InvalidOperationException("ReceiveBuffer overflow"), "ReceiveLoop");
-                    _recvBuffer.Clear();
-                    continue;
-                }
-
-                while (true)
-                {
-                    var frame = TryExtractFrame();
-                    if (frame == null) break;
-                    OnDataReceived?.Invoke(frame);
+                    _receiveBuffer.Clear();
                 }
             }
             catch (OperationCanceledException) { break; }
@@ -165,36 +175,6 @@ public class TcpClientConnection : IDisposable
         OnDisconnected?.Invoke();
     }
 
-    private byte[]? TryExtractFrame()
-    {
-        if (FrameDelimiter == null || FrameDelimiter.Length == 0)
-        {
-            if (_recvBuffer.Count == 0) return null;
-            var frame = _recvBuffer.ToArray();
-            _recvBuffer.Clear();
-            return frame;
-        }
-
-        var delimPos = IndexOf(_recvBuffer, FrameDelimiter);
-        if (delimPos < 0) return null;
-
-        var complete = _recvBuffer.Take(delimPos).ToArray();
-        _recvBuffer.RemoveRange(0, delimPos + FrameDelimiter.Length);
-        return complete;
-    }
-
-    private static int IndexOf(List<byte> source, byte[] pattern)
-    {
-        for (int i = 0; i <= source.Count - pattern.Length; i++)
-        {
-            bool match = true;
-            for (int j = 0; j < pattern.Length; j++)
-                if (source[i + j] != pattern[j]) { match = false; break; }
-            if (match) return i;
-        }
-        return -1;
-    }
-
     private async Task ReconnectAsync(CancellationToken ct)
     {
         await _reconnectLock.WaitAsync(ct);
@@ -202,7 +182,7 @@ public class TcpClientConnection : IDisposable
         {
             _stream?.Dispose();
             _client?.Dispose();
-            _recvBuffer.Clear();
+            _receiveBuffer.Clear();
             _client = new TcpClient();
             await _client.ConnectAsync(Host, Port, ct);
             _stream = _client.GetStream();

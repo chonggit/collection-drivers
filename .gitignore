@@ -1,0 +1,21 @@
+## .NET Build artifacts
+**/bin/
+**/obj/
+*.user
+*.suo
+*.sln.docstates
+
+## NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+
+## Visual Studio
+.vs/
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## macOS
+.DS_Store

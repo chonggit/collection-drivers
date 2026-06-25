@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="base-driver/base-driver.csproj" />
+  <Project Path="battery-driver.test/battery-driver.test.csproj" />
+  <Project Path="battery-driver/battery-driver.csproj" />
+</Solution>

@@ -1,9 +1,6 @@
-using System.IO;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
-using NLog;
-using NLog.Config;
-using NLog.Extensions.Logging;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -14,20 +11,22 @@ namespace l99.driver.@base;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Bootstrap
 {
-    private static ILogger _logger = null!;
+    private static ILogger _logger = NullLogger.Instance;
 
+#pragma warning disable CS1998
     public static async Task Stop()
     {
-        LogManager.Shutdown();
+        LoggingFactory.Close();
     }
+#pragma warning restore CS1998
 
     public static async Task<dynamic> Start(string[] args)
     {
         DetectArch();
-        var nlogFile = GetArgument(args, "--nlog", "nlog.config");
-        _logger = SetupLogger(nlogFile);
         var configFiles = GetArgument(args, "--config", "config.system.yml,config.user.yml,config.machines.yml");
         var config = ReadConfig(configFiles.Split(','));
+        _logger = LoggingFactory.CreateLogger(typeof(Bootstrap).FullName);
+        _logger.LogInformation("Configuration loaded");
         return config;
     }
 
@@ -42,17 +41,6 @@ public class Bootstrap
         var optionValue = string.IsNullOrEmpty(value) ? defaultValue : value;
         Console.WriteLine($"Argument '{optionName}' = '{optionValue}'");
         return optionValue;
-    }
-
-    private static Logger SetupLogger(string configFile)
-    {
-        LogManager.Configuration = new XmlLoggingConfiguration(configFile);
-
-        var config = new ConfigurationBuilder().Build();
-
-        return LogManager.Setup()
-            .SetupExtensions(ext => ext.RegisterConfigSettings(config))
-            .GetCurrentClassLogger();
     }
 
     private static dynamic ReadConfig(string[] configFiles)
@@ -70,7 +58,8 @@ public class Bootstrap
 
         var config = deserializer.Deserialize(mergingParser);
 
-        _logger.Trace($"Deserialized configuration:\n{JObject.FromObject(config ?? throw new InvalidOperationException("Configuration cannot be null."))}");
+        _logger.LogTrace("Deserialized configuration: {Config}",
+            JObject.FromObject(config ?? throw new InvalidOperationException("Configuration cannot be null.")));
         
         return config;
     }

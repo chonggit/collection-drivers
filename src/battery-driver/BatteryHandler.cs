@@ -4,13 +4,12 @@ using l99.driver.@base;
 
 namespace battery.driver;
 
-public class BatteryHandler : Handler
+public class BatteryHandler : Handler, IDisposable
 {
-    private readonly DataPublisher _publisher;
+    private readonly DataPublisher _publisher = new();
 
-    public BatteryHandler(Machine machine, DataPublisher publisher) : base(machine)
+    public BatteryHandler(Machine machine) : base(machine)
     {
-        _publisher = publisher;
     }
 
     public void Publish(ChannelRealData data) => _publisher.Publish(data);
@@ -21,4 +20,6 @@ public class BatteryHandler : Handler
     public void Publish(AckData data) => _publisher.Publish(data);
 
     public DataPublisher Publisher => _publisher;
+
+    public void Dispose() => _publisher.Dispose();
 }

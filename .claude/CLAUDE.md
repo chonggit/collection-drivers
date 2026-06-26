@@ -28,7 +28,7 @@
 ```
 
 **`writing-plans`检查**
-执行 `writing-plans ` 技能前，必须检查 `spec-auditor` 审计是否已执行过。没执行过，向用户确认是否需要执行。
+执行 `writing-plans` 技能前，必须检查 `spec-auditor` 审计是否已执行过。没执行过，向用户确认是否需要执行。
 
 **禁止**：
 - 跳过 spec-auditor 直接向用户展示 Spec

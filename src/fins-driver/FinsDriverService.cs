@@ -28,6 +28,6 @@ public class FinsDriverService : BackgroundService
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         await base.StopAsync(cancellationToken);
-        _strategy?.DisposeConnection();
+        _strategy?.Dispose();
     }
 }

@@ -61,6 +61,8 @@ public class BatteryTcpStrategy : Strategy
     {
         await Task.Delay(delayMs < 0 ? SweepMs : delayMs);
         _connection?.CheckHeartbeat();
+        LastSuccess = _connection?.IsConnected ?? false;
+        IsHealthy = _connection?.IsConnected ?? false;
         if (Machine?.Handler != null)
             await Machine.Handler.OnStrategySweepCompleteInternalAsync();
     }

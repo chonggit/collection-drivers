@@ -59,9 +59,12 @@ public class ScannerStrategy : Strategy
 
         if (_config.Mode != "sync")
         {
-            await Machine.Handler.OnStrategySweepCompleteInternalAsync();
+            if (Machine?.Handler != null)
+                await Machine.Handler.OnStrategySweepCompleteInternalAsync();
             return;
         }
+
+        bool allSuccess = true;
 
         try
         {
@@ -79,9 +82,13 @@ public class ScannerStrategy : Strategy
         catch (Exception ex)
         {
             OnError?.Invoke(ex, $"Scanner={_config.Name}");
+            allSuccess = false;
         }
 
-        await Machine.Handler.OnStrategySweepCompleteInternalAsync();
+        LastSuccess = allSuccess;
+        IsHealthy = allSuccess;
+        if (Machine?.Handler != null)
+            await Machine.Handler.OnStrategySweepCompleteInternalAsync();
     }
 
     private void OnRawData(byte[] data)
@@ -151,5 +158,10 @@ public class ScannerStrategy : Strategy
         }
 
         return config;
+    }
+
+    public void Dispose()
+    {
+        _connection?.Dispose();
     }
 }

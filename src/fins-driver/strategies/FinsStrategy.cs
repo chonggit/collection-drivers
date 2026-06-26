@@ -88,7 +88,9 @@ public class FinsStrategy : Strategy
             TryReconnect();
             if (!_connection?.IsConnected ?? true)
             {
-                await Machine.Handler.OnStrategySweepCompleteInternalAsync();
+                LastSuccess = false;
+                if (Machine?.Handler != null)
+                    await Machine.Handler.OnStrategySweepCompleteInternalAsync();
                 return;
             }
         }
@@ -112,7 +114,8 @@ public class FinsStrategy : Strategy
 
         LastSuccess = allSuccess;
         IsHealthy = allSuccess;
-        await Machine.Handler.OnStrategySweepCompleteInternalAsync();
+        if (Machine?.Handler != null)
+            await Machine.Handler.OnStrategySweepCompleteInternalAsync();
     }
 
     private void TryReconnect()
@@ -147,5 +150,8 @@ public class FinsStrategy : Strategy
         await _connection.WriteDAsync(address, data, ct);
     }
 
-    public void DisposeConnection() => _connection?.Dispose();
+    public void Dispose()
+    {
+        _connection?.Dispose();
+    }
 }

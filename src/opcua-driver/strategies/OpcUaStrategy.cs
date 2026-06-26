@@ -336,9 +336,13 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
 
         if (_session == null || !_session.Connected)
         {
-            await Machine.Handler.OnStrategySweepCompleteInternalAsync();
+            LastSuccess = false;
+            if (Machine?.Handler != null)
+                await Machine.Handler.OnStrategySweepCompleteInternalAsync();
             return;
         }
+
+        bool allSuccess = true;
 
         foreach (var collector in _config.Collectors.Where(c =>
             c.Mode == "poll" && c.Nodes.Length > 0))
@@ -418,10 +422,14 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             catch (Exception ex)
             {
                 OnError?.Invoke(ex, $"Sweep collector={collector.Name}");
+                allSuccess = false;
             }
         }
 
-        await Machine.Handler.OnStrategySweepCompleteInternalAsync();
+        LastSuccess = allSuccess;
+        IsHealthy = allSuccess;
+        if (Machine?.Handler != null)
+            await Machine.Handler.OnStrategySweepCompleteInternalAsync();
     }
 
     // ================ Reconnect ================

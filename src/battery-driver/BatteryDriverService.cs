@@ -230,6 +230,7 @@ public class BatteryDriverService : BackgroundService
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
+        await base.StopAsync(cancellationToken);
         _pendingCommands.CancelAll(cancellationToken);
         if (_dataConnection != null)
             await _dataConnection.StopAsync();
@@ -237,6 +238,5 @@ public class BatteryDriverService : BackgroundService
             await _warningConnection.StopAsync();
         _publisher.Dispose();
         _pendingCommands.Dispose();
-        await base.StopAsync(cancellationToken);
     }
 }

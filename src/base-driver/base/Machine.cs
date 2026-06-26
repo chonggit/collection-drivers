@@ -1,7 +1,7 @@
 ﻿// ReSharper disable once CheckNamespace
 
 using System.Diagnostics;
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace l99.driver.@base;
 
@@ -14,8 +14,8 @@ public abstract class Machine
     {
         Configuration = configuration;
         Enabled = Configuration.machine.enabled;
-        Logger = LogManager.GetCurrentClassLogger();
-        Logger.Debug($"[{Id}] Creating machine, enabled: {Enabled}");
+        Logger = LoggingFactory.CreateLogger(typeof(Machine).FullName);
+        Logger.LogDebug($"[{Id}] Creating machine, enabled: {Enabled}");
         _machines = machines;
         Veneers = new Veneers(this);
         _propertyBag = new Dictionary<string, dynamic>();
@@ -66,7 +66,7 @@ public abstract class Machine
             }
             else
             {
-                Logger.Debug($"[{Id}] Adding '{propertyBagKey}' to property bag.");
+                Logger.LogDebug($"[{Id}] Adding '{propertyBagKey}' to property bag.");
                 _propertyBag.Add(propertyBagKey, value);
             }
         }
@@ -80,7 +80,7 @@ public abstract class Machine
 
     public async Task<Machine> AddHandlerAsync(Type type)
     {
-        Logger.Debug($"[{Id}] Creating handler: {type.FullName}");
+        Logger.LogDebug($"[{Id}] Creating handler: {type.FullName}");
 
         try
         {
@@ -95,7 +95,7 @@ public abstract class Machine
         }
         catch
         {
-            Logger.Error($"[{Id}] Unable to add handler: {type.FullName}");
+            Logger.LogError($"[{Id}] Unable to add handler: {type.FullName}");
         }
 
         return this;
@@ -111,7 +111,7 @@ public abstract class Machine
 
     public async Task<Machine> AddStrategyAsync(Type type)
     {
-        Logger.Debug($"[{Id}] Creating strategy: {type.FullName}");
+        Logger.LogDebug($"[{Id}] Creating strategy: {type.FullName}");
 
         try
         {
@@ -123,7 +123,7 @@ public abstract class Machine
         }
         catch
         {
-            Logger.Error($"[{Id}] Unable to add strategy: {type.FullName}");
+            Logger.LogError($"[{Id}] Unable to add strategy: {type.FullName}");
         }
 
         return this;
@@ -131,7 +131,7 @@ public abstract class Machine
 
     public async Task InitStrategyAsync()
     {
-        Logger.Debug($"[{Id}] Initializing strategy...");
+        Logger.LogDebug($"[{Id}] Initializing strategy...");
         await Strategy.InitializeAsync();
     }
 
@@ -148,7 +148,7 @@ public abstract class Machine
 
     public async Task<Machine> AddTransportAsync(Type type)
     {
-        Logger.Debug($"[{Id}] Creating transport: {type.FullName}");
+        Logger.LogDebug($"[{Id}] Creating transport: {type.FullName}");
 
         try
         {
@@ -160,7 +160,7 @@ public abstract class Machine
         }
         catch
         {
-            Logger.Error($"[{Id}] Unable to add transport: {type.FullName}");
+            Logger.LogError($"[{Id}] Unable to add transport: {type.FullName}");
         }
 
         return this;
@@ -176,7 +176,7 @@ public abstract class Machine
 
     public void ApplyVeneer(Type type, string name, bool isCompound = false, bool isInternal = false)
     {
-        Logger.Debug($"[{Id}] Applying veneer: {type.FullName}");
+        Logger.LogDebug($"[{Id}] Applying veneer: {type.FullName}");
         Veneers.Add(type, name, isCompound, isInternal);
     }
 
@@ -192,14 +192,14 @@ public abstract class Machine
 
     public void ApplyVeneerAcrossSlices(Type type, string name, bool isCompound = false, bool isInternal = false)
     {
-        Logger.Debug($"[{Id}] Applying veneer: {type.FullName}");
+        Logger.LogDebug($"[{Id}] Applying veneer: {type.FullName}");
         Veneers.AddAcrossSlices(type, name, isCompound, isInternal);
     }
 
     public void ApplyVeneerAcrossSlices(dynamic sliceKey, Type type, string name, bool isCompound = false,
         bool isInternal = false)
     {
-        Logger.Debug($"[{Id}] Applying veneer: {type.FullName}");
+        Logger.LogDebug($"[{Id}] Applying veneer: {type.FullName}");
         Veneers.AddAcrossSlices(sliceKey, type, name, isCompound, isInternal);
     }
 

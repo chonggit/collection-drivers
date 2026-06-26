@@ -1,7 +1,7 @@
 ﻿// ReSharper disable once CheckNamespace
 
 using Newtonsoft.Json.Linq;
-using NLog;
+using Microsoft.Extensions.Logging;
 
 namespace l99.driver.@base;
 
@@ -13,7 +13,7 @@ public class Machines
 
     private Machines()
     {
-        _logger = LogManager.GetCurrentClassLogger();
+        _logger = LoggingFactory.CreateLogger(typeof(Machines).FullName);
         _machines = new List<Machine>();
         _propertyBag = new Dictionary<string, dynamic>();
     }
@@ -47,11 +47,11 @@ public class Machines
         // prevent creating disabled machines
         if (configuration.machine.enabled == false)
         {
-            _logger.Info($"[{configuration.machine.id}] Machine disabled and will not be added");
+            _logger.LogInformation($"[{configuration.machine.id}] Machine disabled and will not be added");
             return null;
         }
         
-        _logger.Debug($"Adding machine:\n{JObject.FromObject(configuration.machine).ToString()}");
+        _logger.LogDebug($"Adding machine:\n{JObject.FromObject(configuration.machine).ToString()}");
 
         try
         {
@@ -62,7 +62,7 @@ public class Machines
         }
         catch (Exception e)
         {
-            _logger.Error($"[{configuration.machine.id}] Failed to add machine");
+            _logger.LogError($"[{configuration.machine.id}] Failed to add machine");
             return null;
         }
     }
@@ -79,11 +79,11 @@ public class Machines
             }, stoppingToken));
         }
 
-        _logger.Info("Machine tasks running");
+        _logger.LogInformation("Machine tasks running");
 
         await Task.WhenAll(tasks);
         
-        _logger.Info("Machine tasks stopped");
+        _logger.LogInformation("Machine tasks stopped");
     }
 
     private async Task RunMachineAsync(Machine machine, CancellationToken stoppingToken)
@@ -97,16 +97,16 @@ public class Machines
             await machine.RunStrategyAsync();
         }
 
-        _logger.Info($"[{machine.Id}] Machine task stopping");
+        _logger.LogInformation($"[{machine.Id}] Machine task stopping");
         
         await machine.Stop();
         
-        _logger.Info($"[{machine.Id}] Machine task stopped");
+        _logger.LogInformation($"[{machine.Id}] Machine task stopped");
     }
 
     public static async Task<Machines> CreateMachines(dynamic config)
     {
-        var logger = LogManager.GetCurrentClassLogger();
+        var logger = LoggingFactory.CreateLogger(typeof(Machines).FullName);
 
         var assemblyName = typeof(Machines).Assembly.GetName().Name;
         var machineConfigs = new List<dynamic>();
@@ -163,7 +163,7 @@ public class Machines
                         builtConfig.collectors.Add(collectorType, machineConf[collectorType]);
 
             // ReSharper disable once RedundantToStringCall
-            logger.Trace($"Machine configuration built:\n{JObject.FromObject(builtConfig).ToString()}");
+            logger.LogTrace($"Machine configuration built:\n{JObject.FromObject(builtConfig).ToString()}");
 
             machineConfigs.Add(builtConfig);
         }
@@ -172,7 +172,7 @@ public class Machines
 
         foreach (var cfg in machineConfigs)
         {
-            logger.Trace($"Creating machine from config:\n{JObject.FromObject(cfg).ToString()}");
+            logger.LogTrace($"Creating machine from config:\n{JObject.FromObject(cfg).ToString()}");
 
             Machine machine = machines.Add(cfg);
 
@@ -190,7 +190,7 @@ public class Machines
                 }
                 catch (Exception e)
                 {
-                    logger.Error($"[{machine.Id}] Failed to create machine");
+                    logger.LogError($"[{machine.Id}] Failed to create machine");
                     machine.Disable();
                 }
             }

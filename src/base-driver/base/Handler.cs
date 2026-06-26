@@ -1,6 +1,6 @@
 #pragma warning disable CS1998
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace l99.driver.@base;
@@ -11,7 +11,7 @@ public class Handler
 
     protected Handler(Machine machine)
     {
-        Logger = LogManager.GetLogger(GetType().FullName);
+        Logger = LoggingFactory.CreateLogger(GetType().FullName);
         Machine = machine;
     }
 

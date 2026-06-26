@@ -1,6 +1,6 @@
 ﻿#pragma warning disable CS1998
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace l99.driver.@base;
@@ -12,7 +12,7 @@ public class Transport
     // ReSharper disable once UnusedParameter.Local
     protected Transport(Machine machine)
     {
-        Logger = LogManager.GetLogger(GetType().FullName);
+        Logger = LoggingFactory.CreateLogger(GetType().FullName);
         Machine = machine;
     }
 

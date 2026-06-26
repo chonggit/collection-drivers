@@ -1,6 +1,6 @@
 ﻿#pragma warning disable CS1998
 
-using NLog;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace l99.driver.@base;
@@ -19,8 +19,8 @@ public class Veneers
     public Veneers(Machine machine)
     {
         Machine = machine;
-        _logger = LogManager.GetCurrentClassLogger();
-        _logger.Debug($"[{Machine.Id}] Creating veneers holder");
+        _logger = LoggingFactory.CreateLogger(typeof(Veneers).FullName);
+        _logger.LogDebug($"[{Machine.Id}] Creating veneers holder");
     }
 
     public Machine Machine { get; }
@@ -51,7 +51,7 @@ public class Veneers
         }
         catch
         {
-            _logger.Error($"[{Machine.Id}] Unable to add veneer '{veneerType.FullName}'");
+            _logger.LogError($"[{Machine.Id}] Unable to add veneer '{veneerType.FullName}'");
         }
     }
 
@@ -73,7 +73,7 @@ public class Veneers
             }
             catch
             {
-                _logger.Error($"[{Machine.Id}] Unable to add veneer '{veneerType.FullName}' across '{key}' slices");
+                _logger.LogError($"[{Machine.Id}] Unable to add veneer '{veneerType.FullName}' across '{key}' slices");
             }
     }
 
@@ -100,7 +100,7 @@ public class Veneers
             }
             catch
             {
-                _logger.Error($"[{Machine.Id}] Unable to add veneer '{veneerType.FullName}' across '{key}' slices");
+                _logger.LogError($"[{Machine.Id}] Unable to add veneer '{veneerType.FullName}' across '{key}' slices");
             }
     }
 

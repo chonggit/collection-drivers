@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using NLog;
 
 // ReSharper disable once CheckNamespace
 namespace l99.driver.@base;
@@ -44,7 +44,7 @@ public class Veneer
 
     protected Veneer(Veneers veneers, string name = "", bool isCompound = false, bool isInternal = false)
     {
-        Logger = LogManager.GetLogger(GetType().FullName);
+        Logger = LoggingFactory.CreateLogger(GetType().FullName);
         Veneers = veneers;
         Name = name;
         IsCompound = isCompound;
@@ -54,7 +54,7 @@ public class Veneer
     
     protected async Task OnDataArrivedAsync(dynamic[] nativeInputs, dynamic[] additionalInputs, dynamic currentValue)
     {
-        Logger.Trace($"[{Name}] Veneer arrival invocation result:\n{JObject.FromObject(currentValue).ToString()}");
+        Logger.LogTrace($"[{Name}] Veneer arrival invocation result:\n{JObject.FromObject(currentValue).ToString()}");
         LastArrivedNativeInputs = nativeInputs;
         LastArrivedAdditionalInputs = additionalInputs;
         LastArrivedValue = currentValue;
@@ -64,7 +64,7 @@ public class Veneer
 
     protected async Task OnDataChangedAsync(dynamic[] nativeInputs, dynamic[] additionalInputs, dynamic currentValue)
     {
-        Logger.Trace($"[{Name}] Veneer change invocation result:\n{JObject.FromObject(currentValue).ToString()}");
+        Logger.LogTrace($"[{Name}] Veneer change invocation result:\n{JObject.FromObject(currentValue).ToString()}");
         
         // move last to previous and incoming to last
         PreviouslyChangedNativeInputs = LastChangedNativeInputs;
@@ -82,11 +82,11 @@ public class Veneer
     {
         try
         {
-            Logger.Debug($"[{Name}] Veneer error invocation result:\n{JArray.FromObject(nativeInputs)}");
+            Logger.LogDebug($"[{Name}] Veneer error invocation result:\n{JArray.FromObject(nativeInputs)}");
         }
         catch
         {
-            Logger.Info($"[{Name}] Veneer error invocation");
+            Logger.LogInformation($"[{Name}] Veneer error invocation");
         }
 
         LastArrivedNativeInputs = nativeInputs;

@@ -3,7 +3,7 @@ machines:
     enabled: true
     type: CollectionDrivers.OpcUaDriver.OpcUaMachine, CollectionDrivers.OpcUaDriver
     strategy: CollectionDrivers.OpcUaDriver.Strategies.OpcUaStrategy, CollectionDrivers.OpcUaDriver
-    handler: l99.driver.@base.Handler, base-driver
+    handler: CollectionDrivers.Common.TransportHandler, CollectionDrivers.Common
 
     CollectionDrivers.OpcUaDriver.OpcUaMachine, CollectionDrivers.OpcUaDriver:
       sweep_ms: 1000

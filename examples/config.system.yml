@@ -2,4 +2,4 @@ machine-base: &machine-base
   enabled: true
   type: CollectionDrivers.BatteryDriver.BatteryMachine, CollectionDrivers.BatteryDriver
   strategy: CollectionDrivers.BatteryDriver.Strategies.BatteryTcpStrategy, CollectionDrivers.BatteryDriver
-  handler: CollectionDrivers.BatteryDriver.BatteryHandler, CollectionDrivers.BatteryDriver
+  handler: CollectionDrivers.Common.TransportHandler, CollectionDrivers.Common

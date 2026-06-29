@@ -3,7 +3,7 @@ machines:
     enabled: true
     type: CollectionDrivers.BatteryDriver.BatteryMachine, CollectionDrivers.BatteryDriver
     strategy: CollectionDrivers.BatteryDriver.Strategies.BatteryTcpStrategy, CollectionDrivers.BatteryDriver
-    handler: l99.driver.@base.Handler, base-driver
+    handler: CollectionDrivers.Common.TransportHandler, CollectionDrivers.Common
     transport: CollectionDrivers.Transport.InfluxDB.InfluxDbTransport, CollectionDrivers.Transport.InfluxDB
 
     CollectionDrivers.Transport.InfluxDB.InfluxDbTransport, CollectionDrivers.Transport.InfluxDB:
@@ -17,4 +17,4 @@ machines:
       transformers:
         # SWEEP_END 模板 — 采集周期结束时写一条状态记录
         SWEEP_END: |
-          battery,sweep={{ machine.Id }} last_success={{ data.observation.last_success }}i,is_healthy={{ data.observation.is_healthy }}i {{ data.observation.timestamp }}
+          battery,sweep={{ observation.machine }} online={{ data.online }}i,healthy={{ data.healthy }}i {{ observation.time }}

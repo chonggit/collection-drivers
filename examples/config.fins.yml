@@ -3,7 +3,7 @@ machines:
     enabled: true
     type: CollectionDrivers.FinsDriver.FinsMachine, CollectionDrivers.FinsDriver
     strategy: CollectionDrivers.FinsDriver.Strategies.FinsStrategy, CollectionDrivers.FinsDriver
-    handler: l99.driver.@base.Handler, base-driver
+    handler: CollectionDrivers.Common.TransportHandler, CollectionDrivers.Common
 
     CollectionDrivers.FinsDriver.FinsMachine, CollectionDrivers.FinsDriver:
       sweep_ms: 500

@@ -3,7 +3,7 @@ machines:
     enabled: true
     type: CollectionDrivers.ScannerDriver.ScannerMachine, CollectionDrivers.ScannerDriver
     strategy: CollectionDrivers.ScannerDriver.Strategies.ScannerStrategy, CollectionDrivers.ScannerDriver
-    handler: l99.driver.@base.Handler, base-driver
+    handler: CollectionDrivers.Common.TransportHandler, CollectionDrivers.Common
 
     CollectionDrivers.ScannerDriver.ScannerMachine, CollectionDrivers.ScannerDriver:
       sweep_ms: 500

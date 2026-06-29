@@ -1,6 +1,6 @@
-using fins.driver;
+using CollectionDrivers.FinsDriver;
 
-namespace fins.driver.test;
+namespace CollectionDrivers.FinsDriver.Test;
 
 public class FinsConnectionTest
 {

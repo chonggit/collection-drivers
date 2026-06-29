@@ -1,7 +1,7 @@
 using System.Net;
 using CableRobot.Fins;
 
-namespace fins.driver;
+namespace CollectionDrivers.FinsDriver;
 
 public class FinsConnection : IDisposable
 {

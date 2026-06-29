@@ -1,8 +1,8 @@
 using System.Linq;
 using l99.driver.@base;
-using fins.driver.models;
+using CollectionDrivers.FinsDriver.Models;
 
-namespace fins.driver.strategies;
+namespace CollectionDrivers.FinsDriver.Strategies;
 
 public class FinsStrategy : Strategy
 {

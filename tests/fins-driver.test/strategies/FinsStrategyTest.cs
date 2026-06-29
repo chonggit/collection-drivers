@@ -1,6 +1,6 @@
-using fins.driver.strategies;
+using CollectionDrivers.FinsDriver.Strategies;
 
-namespace fins.driver.test.strategies;
+namespace CollectionDrivers.FinsDriver.Test.Strategies;
 
 public class FinsStrategyTest
 {

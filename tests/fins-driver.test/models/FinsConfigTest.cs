@@ -1,6 +1,6 @@
-using fins.driver.models;
+using CollectionDrivers.FinsDriver.Models;
 
-namespace fins.driver.test.models;
+namespace CollectionDrivers.FinsDriver.Test.Models;
 
 public class FinsConfigTest
 {

@@ -1,4 +1,4 @@
-namespace fins.driver.models;
+namespace CollectionDrivers.FinsDriver.Models;
 
 public class FinsCollectorConfig
 {

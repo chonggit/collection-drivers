@@ -1,6 +1,6 @@
 using l99.driver.@base;
 
-namespace fins.driver;
+namespace CollectionDrivers.FinsDriver;
 
 public class FinsMachine : Machine
 {

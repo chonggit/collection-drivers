@@ -88,12 +88,12 @@ machines:
 
   - id: fins_stacker
     enabled: true
-    type: fins.driver.FinsMachine, fins-driver
-    strategy: fins.driver.strategies.FinsStrategy, fins-driver
+    type: CollectionDrivers.FinsDriver.FinsMachine, CollectionDrivers.FinsDriver
+    strategy: CollectionDrivers.FinsDriver.Strategies.FinsStrategy, CollectionDrivers.FinsDriver
     handler: l99.driver.@base.Handler, base-driver
-    fins.driver.FinsMachine, fins-driver:
+    CollectionDrivers.FinsDriver.FinsMachine, CollectionDrivers.FinsDriver:
       sweep_ms: 500
-    fins.driver.strategies.FinsStrategy, fins-driver:
+    CollectionDrivers.FinsDriver.Strategies.FinsStrategy, CollectionDrivers.FinsDriver:
       remote_ip: "192.168.250.1"
 
   - id: battery_cabinet_1

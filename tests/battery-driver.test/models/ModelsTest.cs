@@ -1,6 +1,6 @@
-using battery.driver.models;
+using CollectionDrivers.BatteryDriver.Models;
 
-namespace battery.driver.test.models;
+namespace CollectionDrivers.BatteryDriver.Test.Models;
 
 public class ModelsTest
 {

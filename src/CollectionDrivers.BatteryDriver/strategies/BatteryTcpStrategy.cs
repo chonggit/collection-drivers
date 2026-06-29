@@ -1,8 +1,8 @@
-using battery.driver.collectors;
-using battery.driver.connections;
+using CollectionDrivers.BatteryDriver.Collectors;
+using CollectionDrivers.BatteryDriver.Connections;
 using l99.driver.@base;
 
-namespace battery.driver.strategies;
+namespace CollectionDrivers.BatteryDriver.Strategies;
 
 public class BatteryTcpStrategy : Strategy
 {
@@ -65,7 +65,7 @@ public class BatteryTcpStrategy : Strategy
         if (raw.Length == 7 && raw[0] == 0xFF && raw[6] == 0xEF)
         {
             var seqNo = (ushort)((raw[3] << 8) | raw[4]);
-            var ack = new battery.driver.models.AckData { SeqNo = seqNo, Status = raw[5], Timestamp = DateTime.UtcNow };
+            var ack = new Models.AckData { SeqNo = seqNo, Status = raw[5], Timestamp = DateTime.UtcNow };
             _pendingCommands?.TryComplete(seqNo, ack);
         }
 
@@ -100,24 +100,24 @@ public class BatteryTcpStrategy : Strategy
 
     // ================ Commands ================
 
-    public async Task<battery.driver.models.AckData> StartFormationAsync(battery.driver.models.TurnOrder order)
+    public async Task<Models.AckData> StartFormationAsync(Models.TurnOrder order)
     {
         return await SendCommandAsync(order.CabinetIndex, order.LeftRight, order.LayerCommands, 0x01, order.Technology);
     }
 
-    public Task<battery.driver.models.AckData> PauseFormationAsync(byte cabinet, byte leftRight)
+    public Task<Models.AckData> PauseFormationAsync(byte cabinet, byte leftRight)
     {
         byte[] layerCmds = [0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02];
         return SendCommandAsync(cabinet, leftRight, layerCmds, 0x02, null);
     }
 
-    public Task<battery.driver.models.AckData> ResumeFormationAsync(byte cabinet, byte leftRight)
+    public Task<Models.AckData> ResumeFormationAsync(byte cabinet, byte leftRight)
     {
         byte[] layerCmds = [0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06];
         return SendCommandAsync(cabinet, leftRight, layerCmds, 0x06, null);
     }
 
-    private async Task<battery.driver.models.AckData> SendCommandAsync(byte cabinet, byte leftRight, byte[] layerCommands, byte commandType, string? technology)
+    private async Task<Models.AckData> SendCommandAsync(byte cabinet, byte leftRight, byte[] layerCommands, byte commandType, string? technology)
     {
         if (_pendingCommands == null)
             throw new InvalidOperationException("Strategy not initialized");

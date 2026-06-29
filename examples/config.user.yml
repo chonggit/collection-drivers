@@ -1,5 +1,5 @@
 source-1: &source-1
-  battery.driver.BatteryMachine, battery-driver:
+  CollectionDrivers.BatteryDriver.BatteryMachine, CollectionDrivers.BatteryDriver:
     sweep_ms: 1000
     net:
       port: 13000

@@ -1,4 +1,4 @@
-namespace battery.driver.models;
+namespace CollectionDrivers.BatteryDriver.Models;
 
 public readonly record struct ResultData
 {

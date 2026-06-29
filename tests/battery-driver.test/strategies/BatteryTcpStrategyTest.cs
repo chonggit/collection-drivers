@@ -1,9 +1,10 @@
-using battery.driver.collectors;
-using battery.driver.strategies;
+using CollectionDrivers.BatteryDriver.Collectors;
+using CollectionDrivers.BatteryDriver.Models;
+using CollectionDrivers.BatteryDriver.Strategies;
 using l99.driver.@base;
 using Newtonsoft.Json.Linq;
 
-namespace battery.driver.test.strategies;
+namespace CollectionDrivers.BatteryDriver.Test.Strategies;
 
 public class BatteryTcpStrategyTest
 {
@@ -18,7 +19,7 @@ public class BatteryTcpStrategyTest
         frame[2695] = 0xED;
 
         var collector = new ChannelData();
-        battery.driver.models.ChannelRealData? result = null;
+        ChannelRealData? result = null;
         collector.OnData += data => result = data;
 
         collector.Process(frame);

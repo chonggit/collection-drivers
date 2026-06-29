@@ -1,11 +1,11 @@
 using System.IO;
-using battery.driver.models;
+using CollectionDrivers.BatteryDriver.Models;
 
-namespace battery.driver.collectors;
+namespace CollectionDrivers.BatteryDriver.Collectors;
 
 public class WarningData
 {
-    public event Action<models.WarningData>? OnData;
+    public event Action<Models.WarningData>? OnData;
 
     public void Process(byte[] frame)
     {
@@ -34,7 +34,7 @@ public class WarningData
             };
         }
 
-        OnData?.Invoke(new models.WarningData
+        OnData?.Invoke(new Models.WarningData
         {
             CabinetIndex = cabinetIndex,
             LeftRight = leftRight,

@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace battery.driver.connections;
+namespace CollectionDrivers.BatteryDriver.Connections;
 
 public class ReceiveBuffer
 {

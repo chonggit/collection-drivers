@@ -98,12 +98,12 @@ machines:
 
   - id: battery_cabinet_1
     enabled: true
-    type: battery.driver.BatteryMachine, battery-driver
-    strategy: battery.driver.strategies.BatteryTcpStrategy, battery-driver
-    handler: battery.driver.BatteryHandler, battery-driver
-    battery.driver.BatteryMachine, battery-driver:
+    type: CollectionDrivers.BatteryDriver.BatteryMachine, CollectionDrivers.BatteryDriver
+    strategy: CollectionDrivers.BatteryDriver.Strategies.BatteryTcpStrategy, CollectionDrivers.BatteryDriver
+    handler: CollectionDrivers.BatteryDriver.BatteryHandler, CollectionDrivers.BatteryDriver
+    CollectionDrivers.BatteryDriver.BatteryMachine, CollectionDrivers.BatteryDriver:
       sweep_ms: 1000
-    battery.driver.strategies.BatteryTcpStrategy, battery-driver:
+    CollectionDrivers.BatteryDriver.Strategies.BatteryTcpStrategy, CollectionDrivers.BatteryDriver:
       port: 13000
       warning_port: 13100
       heartbeat_timeout_s: 60

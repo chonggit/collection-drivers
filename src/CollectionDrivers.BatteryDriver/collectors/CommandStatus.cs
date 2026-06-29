@@ -1,7 +1,7 @@
 using System.IO;
-using battery.driver.models;
+using CollectionDrivers.BatteryDriver.Models;
 
-namespace battery.driver.collectors;
+namespace CollectionDrivers.BatteryDriver.Collectors;
 
 /// <summary>
 /// 命令状态采集器，解析 0xFF 帧为 AckData（7字节）或 StatusData（65字节）

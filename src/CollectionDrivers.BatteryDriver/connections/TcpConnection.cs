@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace battery.driver.connections;
+namespace CollectionDrivers.BatteryDriver.Connections;
 
 public class TcpConnection : IDisposable
 {

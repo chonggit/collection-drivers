@@ -1,7 +1,7 @@
 using System.IO;
-using battery.driver.models;
+using CollectionDrivers.BatteryDriver.Models;
 
-namespace battery.driver.collectors;
+namespace CollectionDrivers.BatteryDriver.Collectors;
 
 public class EquipmentAlarm
 {

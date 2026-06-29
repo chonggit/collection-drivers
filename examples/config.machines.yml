@@ -2,8 +2,8 @@ machines:
   - id: cabinet_1
     <<: *machine-base
     <<: *source-1
-    battery.driver.strategies.BatteryTcpStrategy, battery-driver:
+    CollectionDrivers.BatteryDriver.Strategies.BatteryTcpStrategy, CollectionDrivers.BatteryDriver:
       collectors:
-      - battery.driver.collectors.ChannelData, battery-driver
-      - battery.driver.collectors.EquipmentAlarm, battery-driver
-      - battery.driver.collectors.CommandResult, battery-driver
+      - CollectionDrivers.BatteryDriver.Collectors.ChannelData, CollectionDrivers.BatteryDriver
+      - CollectionDrivers.BatteryDriver.Collectors.EquipmentAlarm, CollectionDrivers.BatteryDriver
+      - CollectionDrivers.BatteryDriver.Collectors.CommandResult, CollectionDrivers.BatteryDriver

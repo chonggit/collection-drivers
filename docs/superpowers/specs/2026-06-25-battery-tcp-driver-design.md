@@ -604,15 +604,15 @@ Three-file structure matching fanuc-driver conventions:
 ```yaml
 machine-base: &machine-base
   enabled: true
-  type: battery.driver.BatteryMachine, battery-driver
-  strategy: battery.driver.strategies.BatteryTcpStrategy, battery-driver
-  handler: battery.driver.BatteryHandler, battery-driver
+  type: CollectionDrivers.BatteryDriver.BatteryMachine, CollectionDrivers.BatteryDriver
+  strategy: CollectionDrivers.BatteryDriver.Strategies.BatteryTcpStrategy, CollectionDrivers.BatteryDriver
+  handler: CollectionDrivers.BatteryDriver.BatteryHandler, CollectionDrivers.BatteryDriver
 ```
 
 ### config.user.yml
 ```yaml
 source-1: &source-1
-  battery.driver.BatteryMachine, battery-driver:
+  CollectionDrivers.BatteryDriver.BatteryMachine, CollectionDrivers.BatteryDriver:
     sweep_ms: 1000
     net:
       port: 13000
@@ -628,11 +628,11 @@ machines:
   - id: cabinet_1
     <<: *machine-base
     <<: *source-1
-    battery.driver.strategies.BatteryTcpStrategy, battery-driver:
+    CollectionDrivers.BatteryDriver.Strategies.BatteryTcpStrategy, CollectionDrivers.BatteryDriver:
       collectors:
-      - battery.driver.collectors.ChannelData, battery-driver
-      - battery.driver.collectors.EquipmentAlarm, battery-driver
-      - battery.driver.collectors.CommandResult, battery-driver
+      - CollectionDrivers.BatteryDriver.Collectors.ChannelData, battery-driver
+      - CollectionDrivers.BatteryDriver.Collectors.EquipmentAlarm, battery-driver
+      - CollectionDrivers.BatteryDriver.Collectors.CommandResult, battery-driver
 ```
 
 > **关于 collectors 列表**：此列表为配置文档，用于声明该 Strategy 启用的 Collector 集合。实际 Collector 实例在 `BatteryTcpStrategy` 构造函数中硬编码为私有字段（`_channelDataCollector` 等），框架不通过 YAML 动态实例化 Collector。如需通过框架自动注入，需在后续版本中扩展 base-driver 的依赖注入机制。

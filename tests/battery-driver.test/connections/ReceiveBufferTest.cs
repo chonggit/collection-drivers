@@ -1,6 +1,6 @@
-using battery.driver.connections;
+using CollectionDrivers.BatteryDriver.Connections;
 
-namespace battery.driver.test.connections;
+namespace CollectionDrivers.BatteryDriver.Test.Connections;
 
 public class ReceiveBufferTest
 {

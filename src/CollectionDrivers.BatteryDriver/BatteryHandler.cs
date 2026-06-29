@@ -1,6 +1,6 @@
 using l99.driver.@base;
 
-namespace battery.driver;
+namespace CollectionDrivers.BatteryDriver;
 
 public class BatteryHandler : Handler
 {

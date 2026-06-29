@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/base-driver/base-driver.csproj" />
-    <Project Path="src/battery-driver/battery-driver.csproj" />
+    <Project Path="src/CollectionDrivers.BatteryDriver/CollectionDrivers.BatteryDriver.csproj" />
     <Project Path="src/CollectionDrivers.Common/CollectionDrivers.Common.csproj" />
     <Project Path="src/fins-driver/fins-driver.csproj" />
     <Project Path="src/opcua-driver/opcua-driver.csproj" />

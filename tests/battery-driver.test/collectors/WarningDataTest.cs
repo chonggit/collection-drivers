@@ -1,6 +1,4 @@
-using battery.driver.models;
-
-namespace battery.driver.test.collectors;
+namespace CollectionDrivers.BatteryDriver.Test.Collectors;
 
 public class WarningDataTest
 {
@@ -28,8 +26,8 @@ public class WarningDataTest
 
         frame[154] = 0xED;
 
-        var collector = new battery.driver.collectors.WarningData();
-        WarningData? result = null;
+        var collector = new global::CollectionDrivers.BatteryDriver.Collectors.WarningData();
+        CollectionDrivers.BatteryDriver.Models.WarningData? result = null;
         collector.OnData += data => result = data;
 
         collector.Process(frame);

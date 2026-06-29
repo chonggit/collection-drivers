@@ -1,7 +1,7 @@
-using battery.driver.collectors;
-using battery.driver.models;
+using CollectionDrivers.BatteryDriver.Collectors;
+using CollectionDrivers.BatteryDriver.Models;
 
-namespace battery.driver.test.collectors;
+namespace CollectionDrivers.BatteryDriver.Test.Collectors;
 
 public class ChannelDataTest
 {

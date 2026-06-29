@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using battery.driver.models;
+using CollectionDrivers.BatteryDriver.Models;
 
-namespace battery.driver;
+namespace CollectionDrivers.BatteryDriver;
 
 public class PendingCommandManager : IDisposable
 {

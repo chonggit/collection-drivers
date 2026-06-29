@@ -1,14 +1,14 @@
 machines:
   - id: scanner_1
     enabled: true
-    type: scanner.driver.ScannerMachine, scanner-driver
-    strategy: scanner.driver.strategies.ScannerStrategy, scanner-driver
+    type: CollectionDrivers.ScannerDriver.ScannerMachine, CollectionDrivers.ScannerDriver
+    strategy: CollectionDrivers.ScannerDriver.Strategies.ScannerStrategy, CollectionDrivers.ScannerDriver
     handler: l99.driver.@base.Handler, base-driver
 
-    scanner.driver.ScannerMachine, scanner-driver:
+    CollectionDrivers.ScannerDriver.ScannerMachine, CollectionDrivers.ScannerDriver:
       sweep_ms: 500
 
-    scanner.driver.strategies.ScannerStrategy, scanner-driver:
+    CollectionDrivers.ScannerDriver.Strategies.ScannerStrategy, CollectionDrivers.ScannerDriver:
       host: "192.168.250.10"
       port: 2001
       mode: sync

@@ -1,7 +1,7 @@
-using scanner.driver;
-using scanner.driver.models;
+using CollectionDrivers.ScannerDriver;
+using CollectionDrivers.ScannerDriver.Models;
 
-namespace scanner.driver.test;
+namespace CollectionDrivers.ScannerDriver.Test;
 
 public class BarcodeParserTest
 {

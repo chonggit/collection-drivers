@@ -1,4 +1,4 @@
-namespace scanner.driver;
+namespace CollectionDrivers.ScannerDriver;
 
 public class BarcodeDedup
 {

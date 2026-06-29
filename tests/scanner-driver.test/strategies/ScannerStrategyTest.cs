@@ -1,6 +1,6 @@
-using scanner.driver.strategies;
+using CollectionDrivers.ScannerDriver.Strategies;
 
-namespace scanner.driver.test.strategies;
+namespace CollectionDrivers.ScannerDriver.Test.Strategies;
 
 public class ScannerStrategyTest
 {

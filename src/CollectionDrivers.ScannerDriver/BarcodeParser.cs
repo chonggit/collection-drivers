@@ -1,8 +1,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using scanner.driver.models;
+using CollectionDrivers.ScannerDriver.Models;
 
-namespace scanner.driver;
+namespace CollectionDrivers.ScannerDriver;
 
 public class BarcodeParser
 {

@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>scanner.driver</RootNamespace>
+    <RootNamespace>CollectionDrivers.ScannerDriver</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

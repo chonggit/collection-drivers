@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>scanner.driver.test</RootNamespace>
+    <RootNamespace>CollectionDrivers.ScannerDriver.Test</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\scanner-driver\scanner-driver.csproj" />
+    <ProjectReference Include="..\..\src\CollectionDrivers.ScannerDriver\CollectionDrivers.ScannerDriver.csproj" />
   </ItemGroup>
 
 </Project>

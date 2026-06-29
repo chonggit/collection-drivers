@@ -1,6 +1,6 @@
-using scanner.driver;
+using CollectionDrivers.ScannerDriver;
 
-namespace scanner.driver.test;
+namespace CollectionDrivers.ScannerDriver.Test;
 
 public class BarcodeDedupTest
 {

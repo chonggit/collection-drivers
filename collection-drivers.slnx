@@ -5,7 +5,7 @@
     <Project Path="src/CollectionDrivers.Common/CollectionDrivers.Common.csproj" />
     <Project Path="src/CollectionDrivers.FinsDriver/CollectionDrivers.FinsDriver.csproj" />
     <Project Path="src/CollectionDrivers.OpcUaDriver/CollectionDrivers.OpcUaDriver.csproj" />
-    <Project Path="src/scanner-driver/scanner-driver.csproj" />
+    <Project Path="src/CollectionDrivers.ScannerDriver/CollectionDrivers.ScannerDriver.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/battery-driver.test/battery-driver.test.csproj" />

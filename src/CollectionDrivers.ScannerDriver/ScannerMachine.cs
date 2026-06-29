@@ -1,6 +1,6 @@
 using l99.driver.@base;
 
-namespace scanner.driver;
+namespace CollectionDrivers.ScannerDriver;
 
 public class ScannerMachine : Machine
 {

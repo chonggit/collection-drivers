@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
 using CollectionDrivers.Common;
 using l99.driver.@base;
-using scanner.driver.models;
+using CollectionDrivers.ScannerDriver.Models;
 
-namespace scanner.driver.strategies;
+namespace CollectionDrivers.ScannerDriver.Strategies;
 
 public class ScannerStrategy : Strategy
 {

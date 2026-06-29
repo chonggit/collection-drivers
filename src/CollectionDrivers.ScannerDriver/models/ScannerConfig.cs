@@ -1,4 +1,4 @@
-namespace scanner.driver.models;
+namespace CollectionDrivers.ScannerDriver.Models;
 
 public class ProtocolConfig
 {

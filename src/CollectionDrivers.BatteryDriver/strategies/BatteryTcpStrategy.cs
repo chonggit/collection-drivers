@@ -1,6 +1,6 @@
 using CollectionDrivers.BatteryDriver.Collectors;
 using CollectionDrivers.BatteryDriver.Connections;
-using l99.driver.@base;
+using CollectionDrivers.Common;
 
 namespace CollectionDrivers.BatteryDriver.Strategies;
 

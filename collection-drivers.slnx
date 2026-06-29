@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/base-driver/base-driver.csproj" />
+
     <Project Path="src/CollectionDrivers.BatteryDriver/CollectionDrivers.BatteryDriver.csproj" />
     <Project Path="src/CollectionDrivers.Common/CollectionDrivers.Common.csproj" />
     <Project Path="src/CollectionDrivers.FinsDriver/CollectionDrivers.FinsDriver.csproj" />

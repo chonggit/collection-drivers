@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\base-driver\base-driver.csproj" />
+    <ProjectReference Include="..\CollectionDrivers.Common\CollectionDrivers.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

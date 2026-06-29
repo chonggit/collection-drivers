@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CollectionDrivers.Common\CollectionDrivers.Common.csproj" />
-    <ProjectReference Include="..\base-driver\base-driver.csproj" />
+
   </ItemGroup>
 
   <ItemGroup>

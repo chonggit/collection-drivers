@@ -1,7 +1,7 @@
 using CollectionDrivers.BatteryDriver.Collectors;
 using CollectionDrivers.BatteryDriver.Models;
 using CollectionDrivers.BatteryDriver.Strategies;
-using l99.driver.@base;
+using CollectionDrivers.Common;
 using Newtonsoft.Json.Linq;
 
 namespace CollectionDrivers.BatteryDriver.Test.Strategies;

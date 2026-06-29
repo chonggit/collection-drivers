@@ -1,20 +1,18 @@
 using InfluxDB.Client;
 using InfluxDB.Client.Api.Domain;
-using l99.driver.@base;
 using Microsoft.Extensions.Logging;
 using Scriban;
 
-// ReSharper disable once CheckNamespace
 namespace CollectionDrivers.Transport.InfluxDB;
 
 /// <summary>
 /// InfluxDB 传输层。将采集数据通过 Line Protocol 写入 InfluxDB。
 /// 支持通过 Scriban 模板进行数据变换。
 /// </summary>
-public class InfluxDbTransport : l99.driver.@base.Transport
+public class InfluxDbTransport : CollectionDrivers.Common.Transport
 {
     /// <summary>
-    /// 已编译的 Scriban 模板缓存：Veneer 名称 → 模板。
+    /// 已编译的 Scriban 模板缓存：模板名称 → 模板。
     /// </summary>
     private readonly Dictionary<string, Template> _templateLookup = new();
 
@@ -22,7 +20,7 @@ public class InfluxDbTransport : l99.driver.@base.Transport
     private WriteApiAsync _writeApi = null!;
 
     /// <summary>
-    /// 配置中的变换器映射：Veneer 类型全名（或特殊名称）→ Scriban 模板文本。
+    /// 配置中的变换器映射：键 → Scriban 模板文本。
     /// </summary>
     private Dictionary<string, string> _transformLookup = new();
 
@@ -32,7 +30,7 @@ public class InfluxDbTransport : l99.driver.@base.Transport
     private string _bucket = string.Empty;
     private string _org = string.Empty;
 
-    public InfluxDbTransport(Machine machine) : base(machine)
+    public InfluxDbTransport(CollectionDrivers.Common.Machine machine) : base(machine)
     {
     }
 
@@ -77,20 +75,16 @@ public class InfluxDbTransport : l99.driver.@base.Transport
 
     /// <summary>
     /// 根据事件类型将数据写入 InfluxDB。
+    /// 当前仅处理 SWEEP_END 事件。
     /// </summary>
-    /// <param name="parameters">[0]=事件名, [1]=Veneer, [2]=数据</param>
+    /// <param name="parameters">[0]=事件名, [1]=保留(null), [2]=payload</param>
     public override async Task SendAsync(params dynamic[] parameters)
     {
         var @event = (string)parameters[0];
-        var veneer = (Veneer)parameters[1];
         var data = parameters[2];
 
         switch (@event)
         {
-            case "DATA_ARRIVE":
-                await HandleDataArriveAsync(veneer, data);
-                break;
-
             case "SWEEP_END":
                 await HandleSweepEndAsync(data);
                 break;
@@ -99,22 +93,6 @@ public class InfluxDbTransport : l99.driver.@base.Transport
                 // 中间模型暂不处理
                 break;
         }
-    }
-
-    /// <summary>
-    /// 处理数据到达事件：按 Veneer 查找变换模板，渲染后写入 InfluxDB。
-    /// </summary>
-    private async Task HandleDataArriveAsync(Veneer veneer, dynamic data)
-    {
-        if (!HasTransform(veneer)) return;
-
-        var template = _templateLookup[veneer.Name];
-        var lp = template.Render(new { data.observation, data.state.data });
-
-        if (string.IsNullOrEmpty(lp)) return;
-
-        Logger.LogDebug("[{MachineId}] Writing DATA_ARRIVE: {LineProtocol}", Machine.Id, lp);
-        await _writeApi.WriteRecordAsync(lp, WritePrecision.Ms, _bucket, _org);
     }
 
     /// <summary>
@@ -136,18 +114,14 @@ public class InfluxDbTransport : l99.driver.@base.Transport
     /// <summary>
     /// 检查并缓存指定名称的变换模板。
     /// </summary>
-    /// <param name="templateName">模板查找名称（对应 Veneer.Name 或 "SWEEP_END" 等）</param>
-    /// <param name="transformName">配置中的 Key，默认与 templateName 相同</param>
-    private bool HasTransform(string templateName, string? transformName = null)
+    private bool HasTransform(string templateName)
     {
-        transformName ??= templateName;
-
         // 已缓存
         if (_templateLookup.ContainsKey(templateName))
             return true;
 
         // 配置中存在，编译并缓存
-        if (_transformLookup.TryGetValue(transformName, out var transformText))
+        if (_transformLookup.TryGetValue(templateName, out var transformText))
         {
             var template = Template.Parse(transformText);
             if (template.HasErrors)
@@ -163,16 +137,6 @@ public class InfluxDbTransport : l99.driver.@base.Transport
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// 检查并缓存指定 Veneer 对应的变换模板。
-    /// </summary>
-    private bool HasTransform(Veneer veneer)
-    {
-        return HasTransform(
-            veneer.Name,
-            $"{veneer.GetType().FullName}, {veneer.GetType().Assembly.GetName().Name}");
     }
 
     /// <summary>

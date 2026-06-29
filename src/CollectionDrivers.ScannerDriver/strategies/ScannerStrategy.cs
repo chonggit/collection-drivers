@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using CollectionDrivers.Common;
-using l99.driver.@base;
+using CollectionDrivers.Common;
 using CollectionDrivers.ScannerDriver.Models;
 
 namespace CollectionDrivers.ScannerDriver.Strategies;

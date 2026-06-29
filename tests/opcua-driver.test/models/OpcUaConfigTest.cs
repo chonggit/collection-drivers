@@ -1,6 +1,6 @@
-using opcua.driver.models;
+using CollectionDrivers.OpcUaDriver.Models;
 
-namespace opcua.driver.test.models;
+namespace CollectionDrivers.OpcUaDriver.Test.Models;
 
 public class OpcUaConfigTest
 {

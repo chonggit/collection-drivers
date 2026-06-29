@@ -78,12 +78,12 @@ services.AddHostedService<DriverHostService>();
 machines:
   - id: plc_opcua
     enabled: true
-    type: opcua.driver.OpcUaMachine, opcua-driver
-    strategy: opcua.driver.strategies.OpcUaStrategy, opcua-driver
+    type: CollectionDrivers.OpcUaDriver.OpcUaMachine, CollectionDrivers.OpcUaDriver
+    strategy: CollectionDrivers.OpcUaDriver.Strategies.OpcUaStrategy, CollectionDrivers.OpcUaDriver
     handler: l99.driver.@base.Handler, base-driver
-    opcua.driver.OpcUaMachine, opcua-driver:
+    CollectionDrivers.OpcUaDriver.OpcUaMachine, CollectionDrivers.OpcUaDriver:
       sweep_ms: 1000
-    opcua.driver.strategies.OpcUaStrategy, opcua-driver:
+    CollectionDrivers.OpcUaDriver.Strategies.OpcUaStrategy, CollectionDrivers.OpcUaDriver:
       endpoint: "opc.tcp://192.168.1.100:4840"
 
   - id: fins_stacker

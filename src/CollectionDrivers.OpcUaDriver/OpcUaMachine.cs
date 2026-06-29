@@ -1,6 +1,6 @@
 using l99.driver.@base;
 
-namespace opcua.driver;
+namespace CollectionDrivers.OpcUaDriver;
 
 public class OpcUaMachine : Machine
 {

@@ -1,8 +1,8 @@
 using System.Dynamic;
-using opcua.driver.strategies;
-using opcua.driver.models;
+using CollectionDrivers.OpcUaDriver.Strategies;
+using CollectionDrivers.OpcUaDriver.Models;
 
-namespace opcua.driver.test.strategies;
+namespace CollectionDrivers.OpcUaDriver.Test.Strategies;
 
 public class OpcUaStrategyTest
 {

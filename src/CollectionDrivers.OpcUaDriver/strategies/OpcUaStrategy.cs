@@ -3,9 +3,9 @@ using l99.driver.@base;
 using Opc.Ua;
 using Opc.Ua.Client;
 using Opc.Ua.Configuration;
-using opcua.driver.models;
+using CollectionDrivers.OpcUaDriver.Models;
 
-namespace opcua.driver.strategies;
+namespace CollectionDrivers.OpcUaDriver.Strategies;
 
 public class OpcUaStrategy : Strategy, IAsyncDisposable
 {

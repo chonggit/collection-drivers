@@ -1,4 +1,4 @@
-namespace opcua.driver.models;
+namespace CollectionDrivers.OpcUaDriver.Models;
 
 public class OpcUaConfig
 {

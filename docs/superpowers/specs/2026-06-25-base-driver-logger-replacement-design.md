@@ -30,7 +30,7 @@
 |---|---|---|
 | `NLog` | 6.1.3 | ❌ 移除（死依赖，代码中未使用） |
 
-其他驱动（opcua-driver、scanner-driver、fins-driver、drivers.common）无 NLog 依赖，无需变更。
+其他驱动（opcua-driver、scanner-driver、fins-driver、CollectionDrivers.Common）无 NLog 依赖，无需变更。
 
 ### 新增文件
 

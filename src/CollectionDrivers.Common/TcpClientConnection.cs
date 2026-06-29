@@ -1,6 +1,6 @@
 using System.Net.Sockets;
 
-namespace drivers.common;
+namespace CollectionDrivers.Common;
 
 public class TcpClientConnection : IDisposable
 {

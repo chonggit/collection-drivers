@@ -4,7 +4,7 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 
-namespace drivers.common;
+namespace CollectionDrivers.Common;
 
 public class DriverHostService : BackgroundService
 {

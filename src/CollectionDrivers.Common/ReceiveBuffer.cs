@@ -1,4 +1,4 @@
-namespace drivers.common;
+namespace CollectionDrivers.Common;
 
 /// <summary>
 /// 通用 TCP 粘包/半包处理缓冲区。

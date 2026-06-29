@@ -12,7 +12,7 @@ Build a **generic** TCP scanner (barcode reader) driver for the collection-drive
 
 **Target project location:** `collection-drivers/scanner-driver/`
 
-**Common TCP component:** `drivers.common/TcpClientConnection.cs` — reusable TCP Client connection manager extracted for all future TCP Client-based drivers.
+**Common TCP component:** `CollectionDrivers.Common/TcpClientConnection.cs` — reusable TCP Client connection manager extracted for all future TCP Client-based drivers.
 
 **Reference implementation:** `HT_WCS/utility/myScannerMgr.cs` (myScanner + myScanner2 classes) from the wancang.turnmgr project.
 
@@ -26,9 +26,9 @@ collection-drivers/
 ├── battery-driver/
 ├── opcua-driver/
 ├── fins-driver/
-├── drivers.common/                  ← 新：公共 TCP Client 组件
+├── CollectionDrivers.Common/                  ← 新：公共 TCP Client 组件
 │   ├── TcpClientConnection.cs      ← TCP 连接/重连/发送/接收
-│   └── drivers.common.csproj
+│   └── CollectionDrivers.Common.csproj
 ├── scanner-driver/                  ← 新：扫码枪驱动
 │   ├── strategies/
 │   │   └── ScannerStrategy.cs      ← 同步/异步双模式
@@ -46,7 +46,7 @@ collection-drivers/
 
 ### 2.1 Key Design Decisions
 
-- **drivers.common 抽取**：`TcpClientConnection` 封装 TCP Client 共用的连接/重连/发送/接收逻辑，供 scanner-driver 和未来 TCP Client 驱动复用。
+- **CollectionDrivers.Common 抽取**：`TcpClientConnection` 封装 TCP Client 共用的连接/重连/发送/接收逻辑，供 scanner-driver 和未来 TCP Client 驱动复用。
 - **可配置协议**：发送命令（hex）、响应编码、条码提取正则、前后缀移除均由 YAML 配置，不绑定特定品牌。
 - **双模式**：sync 模式（SweepAsync 中发命令等响应）和 async 模式（长连接持续接收推送）。YAML 中 `mode` 字段控制。
 - **去重/去抖**：`BarcodeDedup` 基于上次条码+时间窗口的轻量内存去重，不依赖文件系统。
@@ -55,13 +55,13 @@ collection-drivers/
 
 ## 3. Component Design
 
-### 3.1 TcpClientConnection (drivers.common) — 含 ReceiveBuffer 粘包处理
+### 3.1 TcpClientConnection (CollectionDrivers.Common) — 含 ReceiveBuffer 粘包处理
 
 ```csharp
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 
-namespace drivers.common;
+namespace CollectionDrivers.Common;
 
 public class TcpClientConnection : IDisposable
 {
@@ -424,7 +424,7 @@ public class BarcodeDedup
 ### 3.5 ScannerStrategy
 
 ```csharp
-using drivers.common;
+using CollectionDrivers.Common;
 
 public class ScannerStrategy : Strategy
 {

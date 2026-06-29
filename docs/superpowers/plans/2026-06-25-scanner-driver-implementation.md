@@ -4,7 +4,7 @@
 
 **Goal:** Build a generic TCP scanner (barcode reader) driver with configurable protocol and a reusable `TcpClientConnection` component.
 
-**Architecture:** `drivers.common/TcpClientConnection` provides reusable TCP Client with sticky-packet handling (ReceiveBuffer + FrameDelimiter), auto-reconnect, and exponential backoff. `ScannerStrategy` wraps it with sync/async dual-mode, `BarcodeParser` for configurable barcode extraction, and `BarcodeDedup` for deduplication.
+**Architecture:** `CollectionDrivers.Common/TcpClientConnection` provides reusable TCP Client with sticky-packet handling (ReceiveBuffer + FrameDelimiter), auto-reconnect, and exponential backoff. `ScannerStrategy` wraps it with sync/async dual-mode, `BarcodeParser` for configurable barcode extraction, and `BarcodeDedup` for deduplication.
 
 **Tech Stack:** .NET 8, C# 12, xUnit, Moq.
 
@@ -14,9 +14,9 @@
 
 ```
 collection-drivers/
-├── drivers.common/
+├── CollectionDrivers.Common/
 │   ├── TcpClientConnection.cs       ← TCP Client 公共组件（连接/重连/粘包拆帧）
-│   └── drivers.common.csproj
+│   └── CollectionDrivers.Common.csproj
 ├── scanner-driver/
 │   ├── strategies/
 │   │   └── ScannerStrategy.cs       ← 同步/异步双模式策略
@@ -42,7 +42,7 @@ collection-drivers/
 ## Phase 1: Project Scaffolding
 
 **Files:**
-- Create: `drivers.common/drivers.common.csproj`
+- Create: `CollectionDrivers.Common/CollectionDrivers.Common.csproj`
 - Create: `scanner-driver/scanner-driver.csproj`
 - Create: `scanner-driver.test/scanner-driver.test.csproj`
 
@@ -54,10 +54,10 @@ collection-drivers/
 
 ```bash
 cd d:/cihong/github/collection-drivers
-dotnet new classlib -n drivers.common -o drivers.common --framework net8.0
+dotnet new classlib -n CollectionDrivers.Common -o CollectionDrivers.Common --framework net8.0
 dotnet new classlib -n scanner-driver -o scanner-driver --framework net8.0
 dotnet new xunit -n scanner-driver.test -o scanner-driver.test --framework net8.0
-dotnet sln add drivers.common/drivers.common.csproj
+dotnet sln add CollectionDrivers.Common/CollectionDrivers.Common.csproj
 dotnet sln add scanner-driver/scanner-driver.csproj
 dotnet sln add scanner-driver.test/scanner-driver.test.csproj
 ```
@@ -66,7 +66,7 @@ dotnet sln add scanner-driver.test/scanner-driver.test.csproj
 
 ```bash
 cd d:/cihong/github/collection-drivers
-dotnet add scanner-driver/scanner-driver.csproj reference drivers.common/drivers.common.csproj
+dotnet add scanner-driver/scanner-driver.csproj reference CollectionDrivers.Common/CollectionDrivers.Common.csproj
 dotnet add scanner-driver/scanner-driver.csproj reference base-driver/base-driver.csproj
 dotnet add scanner-driver.test/scanner-driver.test.csproj reference scanner-driver/scanner-driver.csproj
 ```
@@ -81,7 +81,7 @@ dotnet add scanner-driver.test/scanner-driver.test.csproj package Moq
 - [ ] **Step 4: Remove default Class1.cs files + verify build**
 
 ```bash
-rm d:/cihong/github/collection-drivers/drivers.common/Class1.cs
+rm d:/cihong/github/collection-drivers/CollectionDrivers.Common/Class1.cs
 rm d:/cihong/github/collection-drivers/scanner-driver/Class1.cs
 cd d:/cihong/github/collection-drivers
 dotnet build
@@ -91,27 +91,27 @@ dotnet build
 
 ```bash
 git add .
-git commit -m "feat: add scanner-driver and drivers.common scaffolding"
+git commit -m "feat: add scanner-driver and CollectionDrivers.Common scaffolding"
 ```
 
 ---
 
-## Phase 2: TcpClientConnection (drivers.common)
+## Phase 2: TcpClientConnection (CollectionDrivers.Common)
 
 **Files:**
-- Create: `drivers.common/TcpClientConnection.cs`
+- Create: `CollectionDrivers.Common/TcpClientConnection.cs`
 
 **Skip TDD rationale:** Network infrastructure code; tests require a TCP server.
 
 ### Task 2.1: Create TcpClientConnection
 
-- [ ] **Step 1: Create `drivers.common/TcpClientConnection.cs`**
+- [ ] **Step 1: Create `CollectionDrivers.Common/TcpClientConnection.cs`**
 
 ```csharp
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 
-namespace drivers.common;
+namespace CollectionDrivers.Common;
 
 public class TcpClientConnection : IDisposable
 {
@@ -659,7 +659,7 @@ dotnet test scanner-driver.test/scanner-driver.test.csproj --filter "FullyQualif
 
 ```csharp
 using System.Text.RegularExpressions;
-using drivers.common;
+using CollectionDrivers.Common;
 using l99.driver.@base;
 using scanner.driver.models;
 

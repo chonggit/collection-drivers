@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\drivers.common\drivers.common.csproj" />
+    <ProjectReference Include="..\CollectionDrivers.Common\CollectionDrivers.Common.csproj" />
     <ProjectReference Include="..\base-driver\base-driver.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,6 @@
 using System.Threading.Channels;
 
-namespace drivers.common;
+namespace CollectionDrivers.Common;
 
 /// <summary>
 /// 泛型数据发布器：Channel<T> + 事件 Action<T> 双通道。

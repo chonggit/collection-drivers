@@ -8,9 +8,9 @@
 
 ## 1. Overview
 
-Introduce a single `DriverHostService` in `drivers.common` that replaces the four per-driver `BackgroundService` entry points. The host loads all driver configurations from a single `config.machines.yml` via `Machines.CreateMachines()`, then runs all machines concurrently in one process.
+Introduce a single `DriverHostService` in `CollectionDrivers.Common` that replaces the four per-driver `BackgroundService` entry points. The host loads all driver configurations from a single `config.machines.yml` via `Machines.CreateMachines()`, then runs all machines concurrently in one process.
 
-**Target project location:** `drivers.common/DriverHostService.cs`
+**Target project location:** `CollectionDrivers.Common/DriverHostService.cs`
 
 ---
 
@@ -19,7 +19,7 @@ Introduce a single `DriverHostService` in `drivers.common` that replaces the fou
 ```csharp
 using Microsoft.Extensions.Hosting;
 
-namespace drivers.common;
+namespace CollectionDrivers.Common;
 
 public class DriverHostService : BackgroundService
 {
@@ -45,10 +45,10 @@ public class DriverHostService : BackgroundService
 }
 ```
 
-### 2.1 drivers.common 依赖变更
+### 2.1 CollectionDrivers.Common 依赖变更
 
 ```xml
-<!-- drivers.common.csproj 新增 -->
+<!-- CollectionDrivers.Common.csproj 新增 -->
 <ItemGroup>
   <ProjectReference Include="..\base-driver\base-driver.csproj" />
 </ItemGroup>
@@ -244,7 +244,7 @@ while (!stoppingToken.IsCancellationRequested)
 
 | 文件 | 状态 | 说明 |
 |---|---|---|
-| `drivers.common/DriverHostService.cs` | + 新增 | 统一入口 |
+| `CollectionDrivers.Common/DriverHostService.cs` | + 新增 | 统一入口 |
 | `battery-driver/BatteryDriverService.cs` | - 移除 | 迁移至各组件 |
 | `opcua-driver/OpcUaDriverService.cs` | - 移除 | 已 `throw NotImplementedException` |
 | `fins-driver/FinsDriverService.cs` | - 移除 | 已 `throw NotImplementedException` |

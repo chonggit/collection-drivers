@@ -6,6 +6,7 @@
     <Project Path="src/CollectionDrivers.FinsDriver/CollectionDrivers.FinsDriver.csproj" />
     <Project Path="src/CollectionDrivers.OpcUaDriver/CollectionDrivers.OpcUaDriver.csproj" />
     <Project Path="src/CollectionDrivers.ScannerDriver/CollectionDrivers.ScannerDriver.csproj" />
+    <Project Path="src/CollectionDrivers.Transport.InfluxDB/CollectionDrivers.Transport.InfluxDB.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/battery-driver.test/battery-driver.test.csproj" />

@@ -2,6 +2,10 @@ using System.Net.Sockets;
 
 namespace CollectionDrivers.Common;
 
+/// <summary>
+/// 通用 TCP 客户端连接。支持同步请求/响应和异步事件推送两种模式。
+/// 内置自动重连、帧拆包（通过 ReceiveBuffer）和接收缓冲区溢出保护。
+/// </summary>
 public class TcpClientConnection : IDisposable
 {
     private TcpClient? _client;
@@ -13,15 +17,24 @@ public class TcpClientConnection : IDisposable
     private volatile bool _disposed;
     private readonly SemaphoreSlim _reconnectLock = new(1, 1);
 
+    /// <summary>目标主机名或 IP</summary>
     public string Host { get; private set; } = "";
+    /// <summary>目标端口</summary>
     public int Port { get; private set; }
+    /// <summary>连接超时（毫秒）</summary>
     public int ConnectTimeoutMs { get; set; } = 3000;
+    /// <summary>接收超时（毫秒）</summary>
     public int ReceiveTimeoutMs { get; set; } = 5000;
+    /// <summary>当前是否已连接</summary>
     public bool IsConnected => _client?.Connected ?? false;
 
+    /// <summary>连接建立事件</summary>
     public event Action? OnConnected;
+    /// <summary>连接断开事件</summary>
     public event Action? OnDisconnected;
+    /// <summary>错误事件（异常 + 上下文）</summary>
     public event Action<Exception, string>? OnError;
+    /// <summary>数据帧接收事件</summary>
     public event Action<byte[]>? OnDataReceived;
 
     /// <summary>帧分隔符（byte[]，如 0x0A=\n），委托给内部 ReceiveBuffer</summary>
@@ -31,6 +44,7 @@ public class TcpClientConnection : IDisposable
         set => _receiveBuffer.FrameDelimiter = value;
     }
 
+    /// <summary>配置连接参数（需在 StartReceiveLoop 或 ConnectAsync 之前调用）</summary>
     public void Configure(string host, int port,
         int connectTimeoutMs = 3000, int receiveTimeoutMs = 5000)
     {
@@ -40,6 +54,7 @@ public class TcpClientConnection : IDisposable
         ReceiveTimeoutMs = receiveTimeoutMs;
     }
 
+    /// <summary>建立 TCP 连接</summary>
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         using var connectCts = new CancellationTokenSource(ConnectTimeoutMs);
@@ -54,7 +69,10 @@ public class TcpClientConnection : IDisposable
         OnConnected?.Invoke();
     }
 
-    // ct 仅控制信号量等待和重试取消。读写超时由 ReceiveTimeoutMs + 外部 CTS 控制。
+    /// <summary>
+    /// 发送命令并等待完整响应帧。支持自动重连和重试。
+    /// ct 仅控制信号量等待和重试取消，读写超时由 ReceiveTimeoutMs + 外部 CTS 控制。
+    /// </summary>
     public async Task<byte[]> SendAndReceiveAsync(byte[] command,
         int retryCount = 3, CancellationToken ct = default)
     {
@@ -115,6 +133,7 @@ public class TcpClientConnection : IDisposable
         }
     }
 
+    /// <summary>启动异步接收循环。连接断开时自动重连（指数退避）。帧通过 OnDataReceived 事件推送。</summary>
     public void StartReceiveLoop()
     {
         _disposeCts = new CancellationTokenSource();

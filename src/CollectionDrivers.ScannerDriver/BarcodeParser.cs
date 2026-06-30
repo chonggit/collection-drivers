@@ -4,15 +4,21 @@ using CollectionDrivers.ScannerDriver.Models;
 
 namespace CollectionDrivers.ScannerDriver;
 
+/// <summary>
+/// 条码解析器。将原始字节数据按协议配置解码、正则提取、前后缀清理，输出纯条码字符串。
+/// </summary>
 public class BarcodeParser
 {
     private readonly ProtocolConfig _protocol;
 
+    /// <summary>构造解析器</summary>
+    /// <param name="protocol">协议配置（编码、正则、前后缀等）</param>
     public BarcodeParser(ProtocolConfig protocol)
     {
         _protocol = protocol;
     }
 
+    /// <summary>解析原始字节为条码字符串。失败返回 null。</summary>
     public string? Parse(byte[] raw)
     {
         if (raw == null) return null;

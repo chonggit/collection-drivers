@@ -3,6 +3,10 @@ using System.Net.Sockets;
 
 namespace CollectionDrivers.BatteryDriver.Connections;
 
+/// <summary>
+/// 电池设备 TCP 服务端连接。作为 TcpListener 被动接受设备连接，
+/// 通过 ReceiveBuffer 拆帧后推送 OnDataReceived 事件。支持心跳超时检测。
+/// </summary>
 public class TcpConnection : IDisposable
 {
     private readonly int _port;
@@ -15,12 +19,20 @@ public class TcpConnection : IDisposable
     private readonly SemaphoreSlim _sendLock = new(1, 1);
     private DateTime _lastDataTime = DateTime.MinValue;
 
+    /// <summary>当前是否已连接</summary>
     public bool IsConnected => _client?.Connected ?? false;
+    /// <summary>客户端连接建立事件</summary>
     public event Action? OnClientConnected;
+    /// <summary>客户端断开事件</summary>
     public event Action? OnClientDisconnected;
+    /// <summary>数据帧接收事件</summary>
     public event Action<byte[]>? OnDataReceived;
+    /// <summary>错误事件</summary>
     public event Action<Exception, string>? OnError;
 
+    /// <summary>构造 TCP 服务端连接</summary>
+    /// <param name="port">监听端口</param>
+    /// <param name="heartbeatTimeoutSeconds">心跳超时（秒），0 禁用</param>
     public TcpConnection(int port, int heartbeatTimeoutSeconds = 60)
     {
         _port = port;
@@ -29,6 +41,7 @@ public class TcpConnection : IDisposable
         _receiveBuffer.OnError += (ex, ctx) => OnError?.Invoke(ex, ctx);
     }
 
+    /// <summary>启动监听循环，接受客户端连接</summary>
     public async Task StartListeningAsync(CancellationToken cancellationToken = default)
     {
         _listener = new TcpListener(IPAddress.Any, _port);
@@ -89,6 +102,7 @@ public class TcpConnection : IDisposable
         }
     }
 
+    /// <summary>发送数据到已连接设备（线程安全）</summary>
     public async Task SendAsync(byte[] data)
     {
         if (_stream == null || !IsConnected)
@@ -106,6 +120,7 @@ public class TcpConnection : IDisposable
         }
     }
 
+    /// <summary>检查心跳超时。超过 heartbeatTimeoutSeconds 无数据则断开连接。</summary>
     public void CheckHeartbeat()
     {
         if (_heartbeatTimeoutSeconds <= 0) return;
@@ -121,6 +136,7 @@ public class TcpConnection : IDisposable
         }
     }
 
+    /// <summary>停止监听和所有连接</summary>
     public async Task StopAsync()
     {
         _cts?.Cancel();
@@ -130,6 +146,7 @@ public class TcpConnection : IDisposable
         OnClientDisconnected?.Invoke();
     }
 
+    /// <summary>释放所有资源</summary>
     public void Dispose()
     {
         _cts?.Cancel();

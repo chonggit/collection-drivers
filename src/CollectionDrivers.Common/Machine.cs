@@ -1,6 +1,5 @@
 // ReSharper disable once CheckNamespace
 
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace CollectionDrivers.Common;
@@ -8,7 +7,6 @@ namespace CollectionDrivers.Common;
 public abstract class Machine
 {
     protected readonly ILogger Logger;
-    private Machines _machines;
 
     protected Machine(Machines machines, object configuration)
     {
@@ -16,13 +14,11 @@ public abstract class Machine
         Enabled = Configuration.machine.enabled;
         Logger = LoggingFactory.CreateLogger(typeof(Machine).FullName);
         Logger.LogDebug($"[{Id}] Creating machine, enabled: {Enabled}");
-        _machines = machines;
         _propertyBag = new Dictionary<string, dynamic>();
     }
 
     public dynamic Configuration { get; }
 
-    public virtual dynamic Info => new {_id = Id};
     public bool Enabled { get; private set; }
 
     public string Id => Configuration.machine.id;

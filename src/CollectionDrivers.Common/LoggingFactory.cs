@@ -25,12 +25,4 @@ public static class LoggingFactory
     public static ILogger CreateLogger(string categoryName)
         => Volatile.Read(ref _factory).CreateLogger(categoryName);
 
-    public static void Close()
-    {
-        lock (_lock)
-        {
-            (_factory as IDisposable)?.Dispose();
-            _factory = NullLoggerFactory.Instance;
-        }
-    }
 }

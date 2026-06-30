@@ -31,17 +31,11 @@ public class Strategy
         return null;
     }
 
-    protected virtual async Task<dynamic?> CollectAsync()
-    {
-        return null;
-    }
-
     public virtual async Task SweepAsync(int delayMs = -1)
     {
         delayMs = delayMs < 0 ? SweepMs : delayMs;
         await Task.Delay(delayMs);
         LastSuccess = false;
-        await CollectAsync();
         await Machine.Handler.OnStrategySweepCompleteInternalAsync();
     }
 }

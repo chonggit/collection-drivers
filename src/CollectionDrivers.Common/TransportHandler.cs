@@ -19,7 +19,7 @@ public class TransportHandler : Handler
     /// 返回 null 时 AfterSweepCompleteAsync 会跳过发送。
     /// </summary>
     protected override async Task<dynamic?> OnStrategySweepCompleteAsync(
-        Machine machine, dynamic? beforeSweepComplete)
+        Machine machine)
     {
         return new
         {
@@ -52,7 +52,7 @@ public class TransportHandler : Handler
 
         try
         {
-            await machine.Transport.SendAsync("SWEEP_END", null, onSweepComplete);
+            await machine.Transport.SendAsync("SWEEP_END", onSweepComplete);
         }
         catch (Exception ex)
         {

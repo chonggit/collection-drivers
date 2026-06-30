@@ -66,31 +66,16 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
     }
 
     /// <summary>
-    /// InfluxDB 客户端在内部管理连接，此处无需额外操作。
-    /// </summary>
-    public override async Task ConnectAsync()
-    {
-        await Task.CompletedTask;
-    }
-
-    /// <summary>
     /// 根据事件类型将数据写入 InfluxDB。
-    /// 当前仅处理 SWEEP_END 事件。
     /// </summary>
-    /// <param name="parameters">[0]=事件名, [1]=保留(null), [2]=payload</param>
-    public override async Task SendAsync(params dynamic[] parameters)
+    /// <param name="eventName">事件名称，如 "SWEEP_END"</param>
+    /// <param name="payload">事件负载数据</param>
+    public override async Task SendAsync(string eventName, dynamic? payload)
     {
-        var @event = (string)parameters[0];
-        var data = parameters[2];
-
-        switch (@event)
+        switch (eventName)
         {
             case "SWEEP_END":
-                await HandleSweepEndAsync(data);
-                break;
-
-            case "INT_MODEL":
-                // 中间模型暂不处理
+                await HandleSweepEndAsync(payload!);
                 break;
         }
     }

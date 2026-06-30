@@ -24,17 +24,11 @@ public class Handler
 
     public virtual async Task OnStrategySweepCompleteInternalAsync()
     {
-        var beforeRet = await BeforeSweepCompleteAsync(Machine);
-        var onRet = await OnStrategySweepCompleteAsync(Machine, beforeRet);
+        var onRet = await OnStrategySweepCompleteAsync(Machine);
         await AfterSweepCompleteAsync(Machine, onRet);
     }
 
-    protected virtual async Task<dynamic?> BeforeSweepCompleteAsync(Machine machine)
-    {
-        return null;
-    }
-
-    protected virtual async Task<dynamic?> OnStrategySweepCompleteAsync(Machine machine, dynamic? beforeSweepComplete)
+    protected virtual async Task<dynamic?> OnStrategySweepCompleteAsync(Machine machine)
     {
         return null;
     }

@@ -9,7 +9,7 @@ namespace CollectionDrivers.Transport.InfluxDB;
 /// InfluxDB 传输层。将采集数据通过 Line Protocol 写入 InfluxDB。
 /// 支持通过 Scriban 模板进行数据变换。
 /// </summary>
-public class InfluxDbTransport : CollectionDrivers.Common.Transport
+public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
 {
     /// <summary>
     /// 已编译的 Scriban 模板缓存：模板名称 → 模板。

@@ -89,9 +89,10 @@ public abstract class Machine
 
             await Handler!.CreateAsync();
         }
-        catch
+        catch (Exception ex)
         {
-            Logger.LogError($"[{Id}] Unable to add handler: {type.FullName}");
+            Logger.LogError(ex, "[{Id}] Unable to add handler: {Type}", Id, type.FullName);
+            Disable();
         }
 
         return this;
@@ -101,8 +102,8 @@ public abstract class Machine
 
     #region strategy
 
-    public bool StrategySuccess => Strategy.LastSuccess;
-    public bool StrategyHealthy => Strategy.IsHealthy;
+    public bool StrategySuccess => Strategy?.LastSuccess ?? false;
+    public bool StrategyHealthy => Strategy?.IsHealthy ?? false;
     public Strategy Strategy { get; private set; } = null!;
 
     public async Task<Machine> AddStrategyAsync(Type type)
@@ -117,9 +118,10 @@ public abstract class Machine
 
             await Strategy!.CreateAsync();
         }
-        catch
+        catch (Exception ex)
         {
-            Logger.LogError($"[{Id}] Unable to add strategy: {type.FullName}");
+            Logger.LogError(ex, "[{Id}] Unable to add strategy: {Type}", Id, type.FullName);
+            Disable();
         }
 
         return this;
@@ -128,12 +130,12 @@ public abstract class Machine
     public async Task InitStrategyAsync()
     {
         Logger.LogDebug($"[{Id}] Initializing strategy...");
-        await Strategy.InitializeAsync();
+        if (Strategy != null) await Strategy.InitializeAsync();
     }
 
     public async Task RunStrategyAsync()
     {
-        await Strategy.SweepAsync();
+        if (Strategy != null) await Strategy.SweepAsync();
     }
 
     #endregion
@@ -154,9 +156,10 @@ public abstract class Machine
 
             await Transport!.CreateAsync();
         }
-        catch
+        catch (Exception ex)
         {
-            Logger.LogError($"[{Id}] Unable to add transport: {type.FullName}");
+            Logger.LogError(ex, "[{Id}] Unable to add transport: {Type}", Id, type.FullName);
+            Disable();
         }
 
         return this;

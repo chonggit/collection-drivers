@@ -61,7 +61,7 @@ public class Machines
         }
         catch (Exception e)
         {
-            _logger.LogError($"[{configuration.machine.id}] Failed to add machine");
+            _logger.LogError(e, "[{MachineId}] Failed to add machine", (string?)configuration.machine.id);
             return null;
         }
     }
@@ -74,7 +74,18 @@ public class Machines
         {
             tasks.Add(Task.Run(async () =>
             {
-                await RunMachineAsync(machine, stoppingToken);
+                try
+                {
+                    await RunMachineAsync(machine, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Normal shutdown
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[{MachineId}] Machine task crashed", machine.Id);
+                }
             }, stoppingToken));
         }
 
@@ -175,7 +186,7 @@ public class Machines
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"[{machine.Id}] Failed to create machine");
+                    logger.LogError(e, "[{MachineId}] Failed to create machine", machine.Id);
                     machine.Disable();
                 }
             }

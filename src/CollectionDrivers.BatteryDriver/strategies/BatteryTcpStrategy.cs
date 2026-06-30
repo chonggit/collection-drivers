@@ -28,10 +28,10 @@ public class BatteryTcpStrategy : Strategy, IDisposable
     public override async Task InitializeAsync()
     {
         var rawConfig = Machine.Configuration.strategy;
-        int port = rawConfig.ContainsKey("port") ? (int)rawConfig["port"] : 13000;
-        int warningPort = rawConfig.ContainsKey("warning_port") ? (int)rawConfig["warning_port"] : 13100;
+        int port = rawConfig.ContainsKey("port") ? Convert.ToInt32(rawConfig["port"]) : 13000;
+        int warningPort = rawConfig.ContainsKey("warning_port") ? Convert.ToInt32(rawConfig["warning_port"]) : 13100;
         int heartbeatTimeout = rawConfig.ContainsKey("heartbeat_timeout_s")
-            ? (int)rawConfig["heartbeat_timeout_s"] : 60;
+            ? Convert.ToInt32(rawConfig["heartbeat_timeout_s"]) : 60;
 
         _connection = new TcpConnection(port, heartbeatTimeout);
         _connection.OnDataReceived += OnRawDataReceived;

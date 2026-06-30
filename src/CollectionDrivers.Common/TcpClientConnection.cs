@@ -242,6 +242,8 @@ public class TcpClientConnection : IDisposable, IAsyncDisposable
             try { await _receiveTask; } catch (OperationCanceledException) { } catch (ObjectDisposedException) { }
         }
 
+        // 等待重连锁释放后再 Dispose，避免持有锁的线程在 finally 中 Release 时抛出 ObjectDisposedException
+        await _reconnectLock.WaitAsync(TimeSpan.FromSeconds(5));
         _stream?.Dispose();
         _client?.Dispose();
         _reconnectLock.Dispose();

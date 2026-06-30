@@ -14,12 +14,14 @@ public class TransportHandler : Handler
     }
 
     /// <summary>
-    /// 构建 SWEEP_END payload 并通过 Transport 发送。
-    /// Transport 为 null 或 SendAsync 异常时安全降级，不中断采集循环。
+    /// 构建 SWEEP_END payload 并通过所有已注册的 Transport 发送。
+    /// 支持同时输出到多个 Transport（如 InfluxDB + MQTT）。
+    /// 单个 Transport 发送失败时仅记录日志，不阻断其他 Transport 的发送。
     /// </summary>
     public override async Task OnStrategySweepCompleteInternalAsync()
     {
-        if (Machine.Transport == null) return;
+        var transports = Machine.Transports;
+        if (transports.Count == 0) return;
 
         var payload = new SweepEndPayload(
             Observation: new SweepEndObservation(
@@ -31,13 +33,17 @@ public class TransportHandler : Handler
             Healthy: Machine.StrategyHealthy
         );
 
-        try
+        foreach (var transport in transports)
         {
-            await Machine.Transport.SendAsync("SWEEP_END", payload);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "[{MachineId}] Transport SWEEP_END send failed", Machine.Id);
+            try
+            {
+                await transport.SendAsync("SWEEP_END", payload);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "[{MachineId}] Transport {TransportType} SWEEP_END send failed",
+                    Machine.Id, transport.GetType().Name);
+            }
         }
     }
 }

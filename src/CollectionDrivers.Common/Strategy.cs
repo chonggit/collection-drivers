@@ -7,7 +7,7 @@ namespace CollectionDrivers.Common;
 /// 数据采集策略基类。子类（BatteryTcpStrategy、FinsStrategy、OpcUaStrategy、ScannerStrategy）
 /// 实现具体协议的采集逻辑。通过 CreateAsync → InitializeAsync → SweepAsync 生命周期管理设备通信。
 /// </summary>
-public class Strategy
+public abstract class Strategy
 {
     protected readonly ILogger Logger;
     /// <summary>采集间隔（毫秒），从配置 type.sweep_ms 读取</summary>
@@ -54,15 +54,10 @@ public class Strategy
     }
 
     /// <summary>
-    /// 执行一次采集周期。延迟 delayMs 后采集数据，设置 LastSuccess/IsHealthy，
-    /// 最后调用 Handler.OnStrategySweepCompleteInternalAsync 触发数据处理管线。
+    /// 执行一次采集周期。子类必须重写以实现具体协议的采集逻辑，
+    /// 包括延迟、数据读取、LastSuccess/IsHealthy 设置以及
+    /// Handler.OnStrategySweepCompleteInternalAsync 调用。
     /// </summary>
     /// <param name="delayMs">延迟毫秒数，-1 使用默认 SweepMs</param>
-    public virtual async Task SweepAsync(int delayMs = -1)
-    {
-        delayMs = delayMs < 0 ? SweepMs : delayMs;
-        await Task.Delay(delayMs);
-        LastSuccess = false;
-        await Machine.Handler.OnStrategySweepCompleteInternalAsync();
-    }
+    public abstract Task SweepAsync(int delayMs = -1);
 }

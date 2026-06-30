@@ -1,3 +1,4 @@
+using System.Reflection;
 using CollectionDrivers.Common;
 
 namespace CollectionDrivers.BatteryDriver.Test.Connections;
@@ -64,5 +65,49 @@ public class TcpClientConnectionTest
         Thread.Sleep(100);
 
         Assert.Equal(1, fireCount);
+    }
+
+    // ============================================================
+    // 发现3 复现：DisposeAsync 应在 Dispose _reconnectLock 之前等待信号量释放
+    // ============================================================
+
+    /// <summary>
+    /// RED: 当前 DisposeAsync 直接 Dispose _reconnectLock 而不等待。
+    /// 如果 ReconnectAsync 持有锁，其 finally 块 Release 已释放的 SemaphoreSlim → ObjectDisposedException。
+    /// GREEN: DisposeAsync 应先等待获取锁，确保无并发操作后再 Dispose。
+    /// </summary>
+    [Fact]
+    public async Task DisposeAsync_WaitsForReconnectLock_BeforeDisposing()
+    {
+        var conn = new TcpClientConnection();
+        conn.Configure("127.0.0.1", 19999);
+
+        // 通过反射获取私有 _reconnectLock
+        var lockField = typeof(TcpClientConnection).GetField("_reconnectLock",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(lockField);
+        var reconnectLock = (SemaphoreSlim)lockField!.GetValue(conn)!;
+
+        // 模拟 ReconnectAsync 进行中：先持有信号量
+        await reconnectLock.WaitAsync();
+
+        // 在后台启动 DisposeAsync
+        var disposeTask = conn.DisposeAsync().AsTask();
+
+        // DisposeAsync 应该被阻塞，等待信号量释放
+        await Task.Delay(300);
+        Assert.False(disposeTask.IsCompleted,
+            "RED: DisposeAsync 应等待 _reconnectLock 释放后再继续（当前直接 Dispose 信号量，不会阻塞）");
+
+        // 释放信号量（模拟 ReconnectAsync 的 finally 块）
+        reconnectLock.Release();
+
+        // 现在 DisposeAsync 应该能完成
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(10));
+        var completed = await Task.WhenAny(disposeTask, timeoutTask);
+        Assert.Equal(disposeTask, completed);
+
+        // 验证信号量已被释放（ObjectDisposedException）
+        Assert.Throws<ObjectDisposedException>(() => reconnectLock.Wait(TimeSpan.Zero));
     }
 }

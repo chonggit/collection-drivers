@@ -26,7 +26,8 @@ public class DriverHostService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // 使用标准 .NET 配置管道解析配置文件路径
-        // 优先级：命令行 > 环境变量 > 默认值
+        // 优先级：环境变量 COLLECTION_DRIVERS_CONFIG > 默认值 config.machines.yml
+        // 注意：如需命令行支持，应注入 IConfiguration（宿主已配置命令行 provider）
         var appConfig = new ConfigurationBuilder()
             .AddEnvironmentVariables()
             .Build();

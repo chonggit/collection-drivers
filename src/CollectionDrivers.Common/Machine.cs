@@ -8,7 +8,7 @@ namespace CollectionDrivers.Common;
 /// 设备抽象基类。管理 Strategy（采集）、Handler（处理）、Transport（发送）三大组件的生命周期，
 /// 承载设备配置和运行状态。子类（如 BatteryMachine、ScannerMachine）通过构造函数注入具体类型。
 /// </summary>
-public abstract class Machine
+public abstract class Machine : IAsyncDisposable
 {
     protected readonly ILogger Logger;
 
@@ -50,6 +50,30 @@ public abstract class Machine
     public virtual async Task Stop()
     {
 
+    }
+
+    /// <summary>
+    /// 异步释放所有组件资源（Transport → Strategy → Handler）。
+    /// 先调用 Stop() 优雅停止，再依次释放子组件。
+    /// </summary>
+    public virtual async ValueTask DisposeAsync()
+    {
+        await Stop();
+
+        // 释放所有 Transport
+        foreach (var t in _transports)
+        {
+            if (t is IAsyncDisposable ad) await ad.DisposeAsync();
+            else if (t is IDisposable d) d.Dispose();
+        }
+
+        // 释放 Strategy
+        if (Strategy is IAsyncDisposable sad) await sad.DisposeAsync();
+        else if (Strategy is IDisposable sd) sd.Dispose();
+
+        // 释放 Handler
+        if (Handler is IAsyncDisposable had) await had.DisposeAsync();
+        else if (Handler is IDisposable hd) hd.Dispose();
     }
 
     #region handler
@@ -123,6 +147,10 @@ public abstract class Machine
             Strategy = (Strategy) Activator.CreateInstance(type, this);
 #pragma warning restore CS8600, CS8601
 
+            // 订阅策略错误事件，确保异常通过日志可见（而非通过无订阅者的 OnError 事件静默丢弃）
+            Strategy!.OnError += (ex, context) =>
+                Logger.LogError(ex, "[{Id}] Strategy error in {Context}", Id, context);
+
             await Strategy!.CreateAsync();
         }
         catch (Exception ex)
@@ -151,11 +179,20 @@ public abstract class Machine
 
     #region transport
 
-    /// <summary>数据发送组件。Handler 处理后通过 Transport 将数据发送到外部系统。</summary>
-    public Transport Transport { get; private set; } = null!;
+    private readonly List<Transport> _transports = new();
+
+    /// <summary>所有已注册的数据发送组件。Handler 处理后遍历此列表将数据推送到各外部系统。</summary>
+    public IReadOnlyList<Transport> Transports => _transports;
+
+    /// <summary>
+    /// 首选 Transport（向后兼容）。返回第一个已注册的 Transport，未注册时返回 null。
+    /// 多 Transport 场景请使用 Transports 属性遍历。
+    /// </summary>
+    public Transport? Transport => _transports.FirstOrDefault();
 
     /// <summary>
     /// 通过反射创建并添加 Transport。类型字符串来自 YAML 配置的 transport 字段。
+    /// 支持多次调用以注册多个 Transport（如同时输出到 InfluxDB + MQTT）。
     /// 创建失败时自动调用 Disable()。
     /// </summary>
     /// <param name="type">Transport 的具体类型</param>
@@ -173,10 +210,11 @@ public abstract class Machine
         try
         {
 #pragma warning disable CS8600, CS8601
-            Transport = (Transport) Activator.CreateInstance(type, this);
+            var transport = (Transport) Activator.CreateInstance(type, this);
 #pragma warning restore CS8600, CS8601
 
-            await Transport!.CreateAsync();
+            await transport!.CreateAsync();
+            _transports.Add(transport);
         }
         catch (Exception ex)
         {

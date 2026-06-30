@@ -61,21 +61,18 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
 
             Logger.LogInformation("[{MachineId}] Loaded {Count} transformer(s)", Machine.Id, _transformLookup.Count);
         }
-
-        return;
     }
-
     /// <summary>
     /// 根据事件类型将数据写入 InfluxDB。
     /// </summary>
     /// <param name="eventName">事件名称，如 "SWEEP_END"</param>
     /// <param name="payload">事件负载数据</param>
-    public override async Task SendAsync(string eventName, dynamic? payload)
+    public override async Task SendAsync(string eventName, object? payload)
     {
         switch (eventName)
         {
-            case "SWEEP_END":
-                await HandleSweepEndAsync(payload!);
+            case "SWEEP_END" when payload is CollectionDrivers.Common.SweepEndPayload data:
+                await HandleSweepEndAsync(data);
                 break;
         }
     }

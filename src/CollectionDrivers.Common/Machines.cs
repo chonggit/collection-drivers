@@ -82,6 +82,7 @@ public class Machines
         _logger.LogInformation($"[{machine.Id}] Machine task stopping");
 
         await machine.Stop();
+        await machine.DisposeAsync();
 
         _logger.LogInformation($"[{machine.Id}] Machine task stopped");
     }
@@ -154,8 +155,13 @@ public class Machines
                     Type strategyType = Type.GetType(cfg.machine.strategy);
                     Type handlerType = Type.GetType(cfg.machine.handler);
 
+                    // 依次创建组件，任一步骤导致 machine 禁用时立即短路，避免已创建资源泄漏
                     await machine.AddTransportAsync(transportType);
+                    if (!machine.Enabled) continue;
+
                     await machine.AddStrategyAsync(strategyType);
+                    if (!machine.Enabled) continue;
+
                     await machine.AddHandlerAsync(handlerType);
                 }
                 catch (Exception e)

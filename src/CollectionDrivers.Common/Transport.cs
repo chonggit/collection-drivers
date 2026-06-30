@@ -30,11 +30,13 @@ public class Transport
     }
 
     /// <summary>
-    /// 发送事件数据到外部系统。
+    /// 发送事件数据到外部系统。子类根据 eventName 判断 payload 具体类型（如 "SWEEP_END" → SweepEndPayload），
+    /// 使用模式匹配或显式类型转换访问字段。
     /// </summary>
     /// <param name="eventName">事件名称，如 "SWEEP_END"</param>
     /// <param name="payload">事件负载数据</param>
-    public virtual async Task SendAsync(string eventName, dynamic? payload)
+    public virtual Task SendAsync(string eventName, object? payload)
     {
+        return Task.CompletedTask;
     }
 }

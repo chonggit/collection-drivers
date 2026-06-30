@@ -11,7 +11,7 @@
 第二阶段 ████████████ ✅ 已完成  (F9, F14, F15)   3 中危 Bug
 第三阶段 ████████████ ✅ 已完成  (F3, F4, dup)    死代码清理
 第四阶段 ████████████ ✅ 已完成  (F5, F1)         YAGNI 接口瘦身
-第五阶段 ████████░░░░ ✅ 部分完成  (F8, F12) 架构对齐 (F7, F6 延后)
+第五阶段 ████████████ ✅ 已完成  (F8, F12, F7, F6) 架构对齐
 第六阶段 ░░░░░░░░░░░░ ⬜ 待开始  (中文注释)
 ```
 
@@ -79,14 +79,29 @@
 
 ---
 
-## 第五阶段：架构对齐 (F7, F6 延后)（按需排期）⬜
+## 第五阶段：架构对齐 ✅
 
-| # | 编号 | 问题 | 方案 |
+| # | 编号 | 操作 | 修改 |
 |---|------|------|------|
-| 12 | F8 | `OnError` 事件在 4 个 Strategy 子类中各自声明 | 提升到基类 `Strategy` |
-| 13 | F7 | DriverHostService 绕过 `IConfiguration` | 引入 `Microsoft.Extensions.Configuration.Yaml` |
-| 14 | F6 | LoggingFactory 静态单例 | 引入标准 .NET DI |
-| 15 | F12 | `AddTransportAsync` 等 NRE 风险 | `type.FullName` 移入 try 块内 |
+| 12 | F8 | `OnError` 提升到基类 | `Strategy.cs`: 加 `event OnError` + `RaiseOnError()`; 4 子类删除重复声明 + `OnError?.Invoke` → `RaiseOnError` |
+| 13 | F12 | NRE 风险修复 | `Machine.cs`: 3 个 `Add*Async` 加 null guard |
+| 14 | F7 | `IConfiguration` 迁移 | `DriverHostService.cs`: `ConfigurationBuilder` + `AddEnvironmentVariables` 解析路径; csproj 加 `Configuration.EnvironmentVariables` 包 |
+| 15 | F6 | DI 桥接 | `DriverHostService.cs`: 构造函数注入 `ILoggerFactory` → `LoggingFactory.SetProvider()`; 宿主自动提供结构化日志 |
+
+### F8 变更明细
+| 文件 | 变更 |
+|------|------|
+| `Common/Strategy.cs` | 加 `public event Action<Exception, string>? OnError` + `protected void RaiseOnError()` |
+| `BatteryDriver/.../BatteryTcpStrategy.cs` | 删除 `OnError` 声明; `OnError?.Invoke` → `RaiseOnError` (2 处) |
+| `FinsDriver/.../FinsStrategy.cs` | 删除 `OnError` 声明; `OnError?.Invoke` → `RaiseOnError` (5 处) |
+| `OpcUaDriver/.../OpcUaStrategy.cs` | 删除 `OnError` 声明; `OnError?.Invoke` → `RaiseOnError` (14 处) |
+| `ScannerDriver/.../ScannerStrategy.cs` | 删除 `OnError` 声明; `OnError?.Invoke` → `RaiseOnError` (2 处) |
+
+### F7+F6 变更明细
+| 文件 | 变更 |
+|------|------|
+| `Common/CollectionDrivers.Common.csproj` | 加 `Microsoft.Extensions.Configuration.EnvironmentVariables` |
+| `Common/DriverHostService.cs` | `ConfigurationBuilder` + `AddEnvironmentVariables`; 构造函数注入 `ILoggerFactory` → `LoggingFactory.SetProvider()` |
 
 ---
 
@@ -128,7 +143,7 @@
 ✅ 第二阶段 (已完成 3/3): F9  → F14 → F15     — 中危 Bug
 ✅ 第三阶段 (已完成 3/3): dup → F3  → F4      — 死代码清理 (~140 行)
 ✅ 第四阶段 (已完成 2/3): F5  → F1  (F2 跳过) — YAGNI 接口瘦身
-⬜ 第五阶段 (按需):      F8  → F7  → F6 → F12 — 架构对齐 (F7, F6 延后)
+✅ 第五阶段 (已完成 4/4): F12 → F8  → F7  → F6  — 架构对齐 (F7, F6 延后)
 ⬜ 第六阶段 (持续):      CLAUDE.md 注释补全
 ```
 

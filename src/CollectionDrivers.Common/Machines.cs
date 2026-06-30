@@ -100,7 +100,7 @@ public class Machines
     {
         await machine.InitStrategyAsync();
 
-        while (!stoppingToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested && machine.Enabled)
         {
             await machine.RunStrategyAsync();
         }

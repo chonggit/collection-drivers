@@ -5,7 +5,7 @@ using CollectionDrivers.ScannerDriver.Models;
 
 namespace CollectionDrivers.ScannerDriver.Strategies;
 
-public class ScannerStrategy : Strategy
+public class ScannerStrategy : Strategy, IDisposable
 {
     private readonly TcpClientConnection _connection = new();
     private readonly ScannerConfig _config;

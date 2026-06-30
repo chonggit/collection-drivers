@@ -37,6 +37,10 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
         {
             var dict = rawConfig as IDictionary<string, object>;
 
+            // IDictionary<object,object> 回退：YamlDotNet 默认反序列化产物
+            if (dict == null && rawConfig is IDictionary<object, object> objDict)
+                dict = objDict.ToDictionary(k => k.Key.ToString()!, k => k.Value!);
+
             if (dict != null)
             {
                 if (dict.ContainsKey("endpoint"))
@@ -57,7 +61,10 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
                     var collectorList = new List<CollectorConfig>();
                     foreach (var cObj in collectors)
                     {
-                        var c = cObj as IDictionary<string, object>;
+                        var c = cObj as IDictionary<string, object>
+                            ?? (cObj is IDictionary<object, object> cObjDict
+                                ? cObjDict.ToDictionary(k => k.Key.ToString()!, k => k.Value!)
+                                : null);
                         if (c == null) continue;
 
                         var cc = new CollectorConfig
@@ -74,7 +81,10 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
                             var nodeList = new List<NodeConfig>();
                             foreach (var nObj in nodes)
                             {
-                                var n = nObj as IDictionary<string, object>;
+                                var n = nObj as IDictionary<string, object>
+                                    ?? (nObj is IDictionary<object, object> nObjDict
+                                        ? nObjDict.ToDictionary(k => k.Key.ToString()!, k => k.Value!)
+                                        : null);
                                 if (n == null) continue;
                                 nodeList.Add(new NodeConfig
                                 {

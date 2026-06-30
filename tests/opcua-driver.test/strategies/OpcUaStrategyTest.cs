@@ -76,4 +76,59 @@ public class OpcUaStrategyTest
         var result = OpcUaStrategy.ParseConfig(configObj);
         Assert.Empty(result.Collectors);
     }
+
+    /// <summary>
+    /// Bug F9 复现：YamlDotNet 默认反序列化产生 Dictionary&lt;object,object&gt;，
+    /// 而 OpcUaStrategy.ParseConfig 仅处理 IDictionary&lt;string,object&gt;，
+    /// 导致配置被静默丢弃（返回默认空配置）。
+    /// FinsStrategy 和 ScannerStrategy 已有回退逻辑。
+    /// </summary>
+    [Fact]
+    public void ParseConfig_DictionaryObjectObject_ReadsConfig()
+    {
+        // 模拟 YamlDotNet 反序列化产物：Dictionary<object, object>
+        var collectorNodes = new List<object>
+        {
+            new Dictionary<object, object>
+            {
+                ["id"] = "ns=2;s=Test.Value",
+                ["alias"] = "test_value"
+            }
+        };
+
+        var collectors = new List<object>
+        {
+            new Dictionary<object, object>
+            {
+                ["name"] = "sub1",
+                ["mode"] = "subscription",
+                ["sampling_interval_ms"] = 500,
+                ["nodes"] = collectorNodes
+            }
+        };
+
+        var rawConfig = new Dictionary<object, object>
+        {
+            ["endpoint"] = "opc.tcp://192.168.1.1:4840",
+            ["use_security"] = false,
+            ["reconnect_period_ms"] = 10000,
+            ["auto_accept_certs"] = true,
+            ["collectors"] = collectors
+        };
+
+        var result = OpcUaStrategy.ParseConfig(rawConfig);
+
+        // RED: 当前代码返回空配置（Endpoint=""），因为 as IDictionary<string,object> 返回 null
+        // GREEN: 修复后正确解析所有字段
+        Assert.Equal("opc.tcp://192.168.1.1:4840", result.Endpoint);
+        Assert.False(result.UseSecurity);
+        Assert.Equal(10000, result.ReconnectPeriodMs);
+        Assert.True(result.AutoAcceptCerts);
+        Assert.Single(result.Collectors);
+        Assert.Equal("sub1", result.Collectors[0].Name);
+        Assert.Equal("subscription", result.Collectors[0].Mode);
+        Assert.Equal(500, result.Collectors[0].SamplingIntervalMs);
+        Assert.Single(result.Collectors[0].Nodes);
+        Assert.Equal("ns=2;s=Test.Value", result.Collectors[0].Nodes[0].Id);
+    }
 }

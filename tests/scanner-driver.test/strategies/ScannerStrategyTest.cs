@@ -13,6 +13,19 @@ public class ScannerStrategyTest
     }
 
     /// <summary>
+    /// Bug F14 复现：ScannerStrategy 有 public Dispose() 但未实现 IDisposable，
+    /// 导致 using 块和 DI 容器无法自动释放资源。
+    /// </summary>
+    [Fact]
+    public void Strategy_ImplementsIDisposable()
+    {
+        // RED: 当前返回 false
+        // GREEN: 添加 : IDisposable 后返回 true
+        Assert.True(typeof(ScannerStrategy).IsAssignableTo(typeof(IDisposable)),
+            "ScannerStrategy 应实现 IDisposable 以支持资源释放");
+    }
+
+    /// <summary>
     /// Bug #13 复现：async 模式下 SweepAsync 提前 return，从未设置 LastSuccess/IsHealthy。
     /// bool 默认 false，导致 TransportHandler 始终上报 online=false, healthy=false。
     /// 修复后 async 模式应正确反映运行状态。

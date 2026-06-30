@@ -4,7 +4,7 @@ using CollectionDrivers.Common;
 
 namespace CollectionDrivers.BatteryDriver.Strategies;
 
-public class BatteryTcpStrategy : Strategy
+public class BatteryTcpStrategy : Strategy, IDisposable
 {
     private TcpConnection? _connection;
     private TcpConnection? _warningConnection;

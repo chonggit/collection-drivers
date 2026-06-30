@@ -4,7 +4,7 @@ using CollectionDrivers.FinsDriver.Models;
 
 namespace CollectionDrivers.FinsDriver.Strategies;
 
-public class FinsStrategy : Strategy
+public class FinsStrategy : Strategy, IDisposable
 {
     private FinsConnection? _connection;
     private readonly FinsConfig _config;

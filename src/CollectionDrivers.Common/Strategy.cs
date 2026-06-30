@@ -19,6 +19,19 @@ public class Strategy
     public bool LastSuccess { get; protected set; }
     public bool IsHealthy { get; protected set; }
 
+    /// <summary>
+    /// 策略执行过程中的错误事件。参数为异常和上下文描述。
+    /// </summary>
+    public event Action<Exception, string>? OnError;
+
+    /// <summary>
+    /// 供子类调用的 OnError 触发方法（C# 限制：派生类不能直接触发基类事件）。
+    /// </summary>
+    protected void RaiseOnError(Exception ex, string context)
+    {
+        OnError?.Invoke(ex, context);
+    }
+
     public virtual Task CreateAsync()
     {
         return Task.CompletedTask;

@@ -13,7 +13,6 @@ public class ScannerStrategy : Strategy, IDisposable
     private volatile bool _initialized;
 
     public event Action<string, string>? OnData;
-    public event Action<Exception, string>? OnError;
 
     public ScannerStrategy(Machine machine) : base(machine)
     {
@@ -40,7 +39,7 @@ public class ScannerStrategy : Strategy, IDisposable
             throw new ArgumentException(
                 $"Invalid scanner mode '{_config.Mode}'. Must be 'sync' or 'async'.");
 
-        _connection.OnError += (ex, ctx) => OnError?.Invoke(ex, ctx);
+        _connection.OnError += (ex, ctx) => RaiseOnError(ex, ctx);
 
         if (_config.Mode == "async")
         {
@@ -82,7 +81,7 @@ public class ScannerStrategy : Strategy, IDisposable
         }
         catch (Exception ex)
         {
-            OnError?.Invoke(ex, $"Scanner={_config.Name}");
+            RaiseOnError(ex, $"Scanner={_config.Name}");
             allSuccess = false;
         }
 

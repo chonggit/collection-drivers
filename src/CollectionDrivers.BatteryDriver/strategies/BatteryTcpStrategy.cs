@@ -22,8 +22,6 @@ public class BatteryTcpStrategy : Strategy, IDisposable
     public CommandStatus CommandStatusCollector => _commandStatusCollector;
     public WarningData WarningDataCollector => _warningDataCollector;
 
-    public event Action<Exception, string>? OnError;
-
     public BatteryTcpStrategy(Machine machine) : base(machine)
     {
     }
@@ -37,7 +35,7 @@ public class BatteryTcpStrategy : Strategy, IDisposable
             ? (int)rawConfig["heartbeat_timeout_s"] : 60;
 
         _pendingCommands = new PendingCommandManager(
-            (ex, ctx) => OnError?.Invoke(ex, ctx));
+            (ex, ctx) => RaiseOnError(ex, ctx));
 
         _connection = new TcpConnection(port, heartbeatTimeout);
         _connection.OnDataReceived += OnRawDataReceived;
@@ -53,7 +51,7 @@ public class BatteryTcpStrategy : Strategy, IDisposable
         {
             _warningConnection?.Dispose();
             _warningConnection = null;
-            OnError?.Invoke(ex, $"Warning port {warningPort} unavailable");
+            RaiseOnError(ex, $"Warning port {warningPort} unavailable");
         }
 
         return;

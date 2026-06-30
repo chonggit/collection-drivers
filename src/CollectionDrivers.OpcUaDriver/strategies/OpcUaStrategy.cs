@@ -19,7 +19,6 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
     private readonly SemaphoreSlim _reconnectLock = new(1, 1);
 
     public event Action<string, Dictionary<string, object>>? OnData;
-    public event Action<Exception, string>? OnError;
     public event Action<bool, string>? OnConnectionState;
 
     public OpcUaStrategy(Machine machine) : base(machine)
@@ -121,7 +120,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             foreach (var collector in _config.Collectors)
             {
                 if (collector.Mode != "subscription" && collector.Mode != "poll")
-                    OnError?.Invoke(
+                    RaiseOnError(
                         new InvalidDataException(
                             $"Unknown collector mode '{collector.Mode}' for '{collector.Name}'"),
                         "InitializeAsync");
@@ -132,7 +131,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key);
             foreach (var name in duplicateNames)
-                OnError?.Invoke(
+                RaiseOnError(
                     new InvalidDataException($"Duplicate collector name '{name}'"),
                     "InitializeAsync");
 
@@ -177,7 +176,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             {
                 if (!ServiceResult.IsGood(e.Status))
                 {
-                    OnError?.Invoke(
+                    RaiseOnError(
                         new Exception($"KeepAlive failed: {e.Status}"), "KeepAlive");
                     OnConnectionState?.Invoke(false, "Disconnected");
                     _ = ReconnectAndRestoreAsync();
@@ -195,7 +194,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            OnError?.Invoke(ex, "InitializeAsync");
+            RaiseOnError(ex, "InitializeAsync");
             throw;
         }
 
@@ -264,7 +263,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             }
             catch (Exception ex)
             {
-                OnError?.Invoke(ex, $"Invalid nodeId: {node.Id}");
+                RaiseOnError(ex, $"Invalid nodeId: {node.Id}");
                 continue;
             }
 
@@ -299,7 +298,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             {
                 try { _session.RemoveSubscription(sub); } catch { }
                 sub.Dispose();
-                OnError?.Invoke(ex, $"CreateSubscription.{collector.Name}");
+                RaiseOnError(ex, $"CreateSubscription.{collector.Name}");
             }
         }
         else
@@ -314,7 +313,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
         if (notification.Value != null &&
             ServiceResult.IsBad(notification.Value.StatusCode))
         {
-            OnError?.Invoke(
+            RaiseOnError(
                 new InvalidDataException(
                     $"Bad quality: {notification.Value.StatusCode} for {monitoredItem.DisplayName}"),
                 $"Subscription.{collector.Name}");
@@ -324,7 +323,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
         var rawValue = notification.Value?.Value;
         if (rawValue == null)
         {
-            OnError?.Invoke(
+            RaiseOnError(
                 new InvalidDataException(
                     $"Null value for node {monitoredItem.DisplayName}"),
                 $"Subscription.{collector.Name}");
@@ -376,7 +375,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
                     }
                     catch (Exception ex)
                     {
-                        OnError?.Invoke(ex,
+                        RaiseOnError(ex,
                             $"Invalid nodeId: {n.Id} in collector {collector.Name}");
                     }
                 }
@@ -410,7 +409,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
                     if (dataValue != null &&
                         ServiceResult.IsBad(dataValue.StatusCode))
                     {
-                        OnError?.Invoke(
+                        RaiseOnError(
                             new InvalidDataException(
                                 $"Bad quality: {dataValue.StatusCode} for {key}"),
                             $"Sweep.collector={collector.Name}");
@@ -421,7 +420,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
                     if (rawValue != null)
                         dict[key] = rawValue;
                     else
-                        OnError?.Invoke(
+                        RaiseOnError(
                             new InvalidDataException($"Null value for node {key}"),
                             $"Sweep.collector={collector.Name}");
                 }
@@ -431,7 +430,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             }
             catch (Exception ex)
             {
-                OnError?.Invoke(ex, $"Sweep collector={collector.Name}");
+                RaiseOnError(ex, $"Sweep collector={collector.Name}");
                 allSuccess = false;
             }
         }
@@ -474,7 +473,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             if (await Task.WhenAny(tcs.Task,
                     Task.Delay(-1, linkedCts.Token)) != tcs.Task)
             {
-                OnError?.Invoke(
+                RaiseOnError(
                     new TimeoutException("Reconnect timeout"), "ReconnectAsync");
                 return;
             }
@@ -500,7 +499,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            OnError?.Invoke(ex, "ReconnectAsync");
+            RaiseOnError(ex, "ReconnectAsync");
         }
         finally
         {

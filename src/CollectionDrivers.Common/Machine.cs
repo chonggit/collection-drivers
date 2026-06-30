@@ -43,6 +43,13 @@ public abstract class Machine
 
     public async Task<Machine> AddHandlerAsync(Type type)
     {
+        if (type == null)
+        {
+            Logger.LogError("[{Id}] Cannot add handler: type is null", Id);
+            Disable();
+            return this;
+        }
+
         Logger.LogDebug($"[{Id}] Creating handler: {type.FullName}");
 
         try
@@ -72,6 +79,13 @@ public abstract class Machine
 
     public async Task<Machine> AddStrategyAsync(Type type)
     {
+        if (type == null)
+        {
+            Logger.LogError("[{Id}] Cannot add strategy: type is null", Id);
+            Disable();
+            return this;
+        }
+
         Logger.LogDebug($"[{Id}] Creating strategy: {type.FullName}");
 
         try
@@ -110,6 +124,13 @@ public abstract class Machine
 
     public async Task<Machine> AddTransportAsync(Type type)
     {
+        if (type == null)
+        {
+            Logger.LogError("[{Id}] Cannot add transport: type is null", Id);
+            Disable();
+            return this;
+        }
+
         Logger.LogDebug($"[{Id}] Creating transport: {type.FullName}");
 
         try

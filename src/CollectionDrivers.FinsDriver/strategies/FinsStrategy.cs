@@ -11,7 +11,6 @@ public class FinsStrategy : Strategy, IDisposable
     private bool _reconnecting;
 
     public event Action<string, ushort[]>? OnData;
-    public event Action<Exception, string>? OnError;
 
     public FinsStrategy(Machine machine) : base(machine)
     {
@@ -63,7 +62,7 @@ public class FinsStrategy : Strategy, IDisposable
     {
         _connection = new FinsConnection(
             _config.RemoteIp, _config.Port, _config.TimeoutMs);
-        _connection.OnError += (ex, ctx) => OnError?.Invoke(ex, ctx);
+        _connection.OnError += (ex, ctx) => RaiseOnError(ex, ctx);
 
         try
         {
@@ -72,7 +71,7 @@ public class FinsStrategy : Strategy, IDisposable
         }
         catch (Exception ex)
         {
-            OnError?.Invoke(ex, "InitializeAsync.Connect");
+            RaiseOnError(ex, "InitializeAsync.Connect");
             IsHealthy = false;
         }
 
@@ -107,7 +106,7 @@ public class FinsStrategy : Strategy, IDisposable
             }
             catch (Exception ex)
             {
-                OnError?.Invoke(ex, $"Sweep collector={collector.Name}");
+                RaiseOnError(ex, $"Sweep collector={collector.Name}");
                 allSuccess = false;
             }
         }
@@ -128,13 +127,13 @@ public class FinsStrategy : Strategy, IDisposable
             _connection?.Dispose();
             _connection = new FinsConnection(
                 _config.RemoteIp, _config.Port, _config.TimeoutMs);
-            _connection.OnError += (ex, ctx) => OnError?.Invoke(ex, ctx);
+            _connection.OnError += (ex, ctx) => RaiseOnError(ex, ctx);
             _connection.Connect();
             IsHealthy = true;
         }
         catch (Exception ex)
         {
-            OnError?.Invoke(ex, "TryReconnect");
+            RaiseOnError(ex, "TryReconnect");
             IsHealthy = false;
         }
         finally

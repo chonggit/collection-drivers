@@ -52,17 +52,6 @@ public class PendingCommandManager : IDisposable
         return false;
     }
 
-    public void CancelAll(CancellationToken cancellationToken)
-    {
-        foreach (var kvp in _pending)
-        {
-            if (_pending.TryRemove(kvp.Key, out var entry))
-                entry.Tcs.TrySetCanceled(cancellationToken);
-        }
-    }
-
-    public int PendingCount => _pending.Count;
-
     private void ScanTimeout(object? _)
     {
         var cutoff = DateTime.UtcNow - TimeSpan.FromSeconds(DefaultTimeoutSeconds);

@@ -98,58 +98,6 @@ public class BatteryTcpStrategy : Strategy, IDisposable
             await Machine.Handler.OnStrategySweepCompleteInternalAsync();
     }
 
-    // ================ Commands ================
-
-    public async Task<Models.AckData> StartFormationAsync(Models.TurnOrder order)
-    {
-        return await SendCommandAsync(order.CabinetIndex, order.LeftRight, order.LayerCommands, 0x01, order.Technology);
-    }
-
-    public Task<Models.AckData> PauseFormationAsync(byte cabinet, byte leftRight)
-    {
-        byte[] layerCmds = [0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02];
-        return SendCommandAsync(cabinet, leftRight, layerCmds, 0x02, null);
-    }
-
-    public Task<Models.AckData> ResumeFormationAsync(byte cabinet, byte leftRight)
-    {
-        byte[] layerCmds = [0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06];
-        return SendCommandAsync(cabinet, leftRight, layerCmds, 0x06, null);
-    }
-
-    private async Task<Models.AckData> SendCommandAsync(byte cabinet, byte leftRight, byte[] layerCommands, byte commandType, string? technology)
-    {
-        if (_pendingCommands == null)
-            throw new InvalidOperationException("Strategy not initialized");
-
-        var (seqNo, task) = _pendingCommands.RegisterCommand();
-
-        var frame = new byte[65];
-        frame[0] = 0xFF;
-        frame[1] = 0x00; frame[2] = 0x3F;
-        frame[3] = (byte)(seqNo >> 8); frame[4] = (byte)seqNo;
-        frame[5] = cabinet;
-        frame[6] = leftRight;
-        if (technology != null)
-        {
-            var techBytes = System.Text.Encoding.UTF8.GetBytes(technology);
-            Array.Copy(techBytes, 0, frame, 7, Math.Min(techBytes.Length, 50));
-        }
-        if (layerCommands != null && layerCommands.Length > 0)
-            Array.Copy(layerCommands, 0, frame, 57, Math.Min(layerCommands.Length, 7));
-        frame[57] = commandType;
-        frame[64] = 0xEF;
-
-        await _connection!.SendAsync(frame);
-
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        var completed = await Task.WhenAny(task, Task.Delay(-1, cts.Token));
-        if (completed == task)
-            return await task;
-
-        throw new TimeoutException($"Command ACK timeout (seqNo={seqNo})");
-    }
-
     // ================ Lifecycle ================
 
     public void Dispose()

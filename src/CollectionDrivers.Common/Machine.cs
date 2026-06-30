@@ -14,7 +14,6 @@ public abstract class Machine
         Enabled = Configuration.machine.enabled;
         Logger = LoggingFactory.CreateLogger(typeof(Machine).FullName);
         Logger.LogDebug($"[{Id}] Creating machine, enabled: {Enabled}");
-        _propertyBag = new Dictionary<string, dynamic>();
     }
 
     public dynamic Configuration { get; }
@@ -37,37 +36,6 @@ public abstract class Machine
     {
 
     }
-
-    #region property-bag
-
-    private readonly Dictionary<string, dynamic> _propertyBag;
-
-    public dynamic? this[string propertyBagKey]
-    {
-        get
-        {
-            if (_propertyBag.ContainsKey(propertyBagKey))
-                return _propertyBag[propertyBagKey];
-            return null;
-        }
-
-        // ReSharper disable once PropertyCanBeMadeInitOnly.Global
-        // ReSharper disable once MemberCanBeProtected.Global
-        set
-        {
-            if (_propertyBag.ContainsKey(propertyBagKey))
-            {
-                _propertyBag[propertyBagKey] = value!;
-            }
-            else
-            {
-                Logger.LogDebug($"[{Id}] Adding '{propertyBagKey}' to property bag.");
-                _propertyBag.Add(propertyBagKey, value);
-            }
-        }
-    }
-
-    #endregion
 
     #region handler
 

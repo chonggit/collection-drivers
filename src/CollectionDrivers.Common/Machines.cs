@@ -9,37 +9,11 @@ public class Machines
 {
     private readonly ILogger _logger;
     private readonly List<Machine> _machines;
-    private readonly Dictionary<string, dynamic> _propertyBag;
 
     private Machines()
     {
         _logger = LoggingFactory.CreateLogger(typeof(Machines).FullName);
         _machines = new List<Machine>();
-        _propertyBag = new Dictionary<string, dynamic>();
-    }
-
-    public dynamic? this[string propertyBagKey]
-    {
-        get
-        {
-            if (_propertyBag.ContainsKey(propertyBagKey))
-                return _propertyBag[propertyBagKey];
-            return null;
-        }
-
-        set
-        {
-            if (_propertyBag.ContainsKey(propertyBagKey))
-            {
-#pragma warning disable CS8601
-                _propertyBag[propertyBagKey] = value;
-#pragma warning restore CS8601
-            }
-            else
-            {
-                _propertyBag.Add(propertyBagKey, value);
-            }
-        }
     }
 
     private Machine? Add(dynamic configuration)

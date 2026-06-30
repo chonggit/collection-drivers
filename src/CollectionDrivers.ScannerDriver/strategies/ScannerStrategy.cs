@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-using CollectionDrivers.Common;
 using CollectionDrivers.Common;
 using CollectionDrivers.ScannerDriver.Models;
 

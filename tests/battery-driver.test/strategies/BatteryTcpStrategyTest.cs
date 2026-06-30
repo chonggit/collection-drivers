@@ -115,7 +115,7 @@ public class BatteryTcpStrategyTest
         dynamic config = JObject.FromObject(new
         {
             machine = new { id = "test-disable-fix", enabled = true },
-            type = new { sweeep_ms = 1000 }
+            type = new { sweep_ms = 1000 }
         });
 
         var machine = new BatteryMachine(machines, config);

@@ -183,18 +183,20 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
                 }
             };
 
-            OnConnectionState?.Invoke(true, "Connected");
-
             // Create subscriptions
             foreach (var collector in _config.Collectors.Where(c =>
                 c.Mode == "subscription" && c.Nodes.Length > 0))
             {
                 CreateSubscription(collector);
             }
+
+            // 所有初始化成功后通知连接就绪
+            OnConnectionState?.Invoke(true, "Connected");
         }
         catch (Exception ex)
         {
             RaiseOnError(ex, "InitializeAsync");
+            OnConnectionState?.Invoke(false, "InitializeFailed");
             throw;
         }
 

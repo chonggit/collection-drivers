@@ -13,7 +13,7 @@ public class Strategy
     /// <summary>采集间隔（毫秒），从配置 type.sweep_ms 读取</summary>
     protected readonly int SweepMs;
 
-    /// <summary>构造策略实例，从 Machine 配置中读取 sweeep 间隔</summary>
+    /// <summary>构造策略实例，从 Machine 配置中读取 sweep 间隔</summary>
     protected Strategy(Machine machine)
     {
         Logger = LoggingFactory.CreateLogger(GetType().FullName);

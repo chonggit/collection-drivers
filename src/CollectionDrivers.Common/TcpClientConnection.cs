@@ -6,7 +6,7 @@ namespace CollectionDrivers.Common;
 /// 通用 TCP 客户端连接。支持同步请求/响应和异步事件推送两种模式。
 /// 内置自动重连、帧拆包（通过 ReceiveBuffer）和接收缓冲区溢出保护。
 /// </summary>
-public class TcpClientConnection : IDisposable
+public class TcpClientConnection : IDisposable, IAsyncDisposable
 {
     private TcpClient? _client;
     private NetworkStream? _stream;
@@ -215,6 +215,7 @@ public class TcpClientConnection : IDisposable
         }
     }
 
+    /// <summary>同步释放资源。优先使用 DisposeAsync 以等待后台任务安全退出。</summary>
     public void Dispose()
     {
         if (_disposed) return;
@@ -223,6 +224,26 @@ public class TcpClientConnection : IDisposable
         _stream?.Dispose();
         _client?.Dispose();
         _reconnectLock.WaitAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+        _reconnectLock.Dispose();
+    }
+
+    /// <summary>
+    /// 异步释放资源。取消后台接收循环并等待其安全退出后再释放网络资源。
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _disposeCts?.Cancel();
+
+        // 等待后台接收任务退出后再释放资源
+        if (_receiveTask != null)
+        {
+            try { await _receiveTask; } catch (OperationCanceledException) { } catch (ObjectDisposedException) { }
+        }
+
+        _stream?.Dispose();
+        _client?.Dispose();
         _reconnectLock.Dispose();
     }
 }

@@ -21,23 +21,15 @@ public class TransportHandler : Handler
     {
         if (Machine.Transport == null) return;
 
-        var payload = new
-        {
-            observation = new
-            {
-                time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                machine = Machine.Id,
-                name = "sweep"
-            },
-            state = new
-            {
-                data = new
-                {
-                    online = Machine.StrategySuccess,
-                    healthy = Machine.StrategyHealthy
-                }
-            }
-        };
+        var payload = new SweepEndPayload(
+            Observation: new SweepEndObservation(
+                Time: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Machine: Machine.Id,
+                Name: "sweep"
+            ),
+            Online: Machine.StrategySuccess,
+            Healthy: Machine.StrategyHealthy
+        );
 
         try
         {

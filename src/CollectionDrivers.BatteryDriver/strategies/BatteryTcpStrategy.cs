@@ -13,7 +13,6 @@ public class BatteryTcpStrategy : Strategy, IDisposable
     private readonly CommandResult _commandResultCollector = new();
     private readonly CommandStatus _commandStatusCollector = new();
     private readonly WarningData _warningDataCollector = new();
-    private PendingCommandManager? _pendingCommands;
     private bool _disposed;
 
     public ChannelData ChannelDataCollector => _channelDataCollector;
@@ -33,9 +32,6 @@ public class BatteryTcpStrategy : Strategy, IDisposable
         int warningPort = rawConfig.ContainsKey("warning_port") ? (int)rawConfig["warning_port"] : 13100;
         int heartbeatTimeout = rawConfig.ContainsKey("heartbeat_timeout_s")
             ? (int)rawConfig["heartbeat_timeout_s"] : 60;
-
-        _pendingCommands = new PendingCommandManager(
-            (ex, ctx) => RaiseOnError(ex, ctx));
 
         _connection = new TcpConnection(port, heartbeatTimeout);
         _connection.OnDataReceived += OnRawDataReceived;
@@ -59,14 +55,6 @@ public class BatteryTcpStrategy : Strategy, IDisposable
 
     private void OnRawDataReceived(byte[] raw)
     {
-        // ACK 帧：先通知 PendingCommandManager，再分发给 Collector
-        if (raw.Length == 7 && raw[0] == 0xFF && raw[6] == 0xEF)
-        {
-            var seqNo = (ushort)((raw[3] << 8) | raw[4]);
-            var ack = new Models.AckData { SeqNo = seqNo, Status = raw[5], Timestamp = DateTime.UtcNow };
-            _pendingCommands?.TryComplete(seqNo, ack);
-        }
-
         switch (raw[0])
         {
             case 0xFD: _channelDataCollector.Process(raw); break;
@@ -102,7 +90,6 @@ public class BatteryTcpStrategy : Strategy, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _pendingCommands?.Dispose();
         _warningConnection?.Dispose();
         _warningConnection = null;
         _connection?.Dispose();

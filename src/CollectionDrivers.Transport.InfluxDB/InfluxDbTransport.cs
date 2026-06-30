@@ -81,14 +81,23 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
     }
 
     /// <summary>
-    /// 处理采集周期结束事件：若有 "SWEEP_END" 变换模板则渲染并写入。
+    /// 处理采集周期结束事件。使用类型安全的 SweepEndPayload 替代 dynamic 访问。
+    /// 模板变量保持向后兼容：data.observation / data.state.data。
     /// </summary>
-    private async Task HandleSweepEndAsync(dynamic data)
+    private async Task HandleSweepEndAsync(CollectionDrivers.Common.SweepEndPayload data)
     {
         if (!HasTransform("SWEEP_END")) return;
 
         var template = _templateLookup["SWEEP_END"];
-        var lp = template.Render(new { data.observation, data.state.data });
+        // 构造与旧匿名类型兼容的模板变量形状
+        var lp = template.Render(new
+        {
+            data = new
+            {
+                observation = data.Observation,
+                state = new { data = new { online = data.Online, healthy = data.Healthy } }
+            }
+        });
 
         if (string.IsNullOrEmpty(lp)) return;
 

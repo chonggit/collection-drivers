@@ -59,6 +59,9 @@ public class ScannerStrategy : Strategy
 
         if (_config.Mode != "sync")
         {
+            // async 模式：sweep 仅作心跳，数据通过事件驱动 OnData 上报
+            LastSuccess = true;
+            IsHealthy = true;
             if (Machine?.Handler != null)
                 await Machine.Handler.OnStrategySweepCompleteInternalAsync();
             return;

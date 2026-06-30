@@ -63,6 +63,10 @@ public class ReceiveBuffer
                         new InvalidDataException(
                             $"m_len mismatch: expected {def.TotalLength - 2}, got {mLen}"),
                         $"ReceiveBuffer.{def.Name}");
+                    // 丢弃此损坏帧，继续尝试解析后续数据
+                    _buffer.RemoveRange(0, def.TotalLength);
+                    parsed = true;
+                    break;
                 }
 
                 var frame = _buffer.GetRange(0, def.TotalLength).ToArray();

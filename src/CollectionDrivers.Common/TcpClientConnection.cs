@@ -8,7 +8,7 @@ public class TcpClientConnection : IDisposable
     private NetworkStream? _stream;
     private CancellationTokenSource? _disposeCts;
     private Task? _receiveTask;
-    private readonly ReceiveBuffer _receiveBuffer = new();
+    internal readonly ReceiveBuffer _receiveBuffer = new();
     private const int MaxReceiveBuffer = 65536;
     private volatile bool _disposed;
     private readonly SemaphoreSlim _reconnectLock = new(1, 1);
@@ -119,6 +119,10 @@ public class TcpClientConnection : IDisposable
     {
         _disposeCts = new CancellationTokenSource();
         var token = _disposeCts.Token;
+
+        // 注册帧处理器（仅一次，不随重连次数累加）
+        _receiveBuffer.OnFrameReceived += frame => OnDataReceived?.Invoke(frame);
+
         _receiveTask = Task.Run(async () =>
         {
             int retryDelay = 1000;
@@ -145,8 +149,6 @@ public class TcpClientConnection : IDisposable
 
     private async Task ReceiveLoop(CancellationToken ct)
     {
-        _receiveBuffer.OnFrameReceived += frame => OnDataReceived?.Invoke(frame);
-
         var buffer = new byte[4096];
         while (!ct.IsCancellationRequested && IsConnected && !_disposed)
         {

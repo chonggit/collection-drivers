@@ -89,4 +89,28 @@ public class ReceiveBufferTest
         Assert.Contains("overflow", error!.Message);
         Assert.Equal(0, buf.BufferedBytes);
     }
+
+    /// <summary>
+    /// Bug #11 复现：m_len 不匹配时，OnError 触发后不应继续发送损坏帧。
+    /// 当前代码在 m_len 校验后缺少控制流跳转（continue/return），会穿透执行
+    /// 导致 OnFrameReceived 仍被调用，将损坏数据传递给下游 Collector。
+    /// </summary>
+    [Fact]
+    public void Append_MlenMismatch_ReportsErrorButDoesNotEmitFrame()
+    {
+        var buf = new ReceiveBuffer();
+        int frameCount = 0;
+        bool errorRaised = false;
+        buf.OnFrameReceived += _ => frameCount++;
+        buf.OnError += (ex, _) => errorRaised = true;
+
+        // 构造 7 字节帧：start=0xFF, end=0xEF(匹配 CommandAck 定义),
+        // 但 m_len = 0x03E7 = 999（正确值应为 5 = 7-2）
+        var frame = new byte[] { 0xFF, 0x03, 0xE7, 0x00, 0x01, 0x01, 0xEF };
+
+        buf.Append(frame);
+
+        Assert.True(errorRaised, "m_len 不匹配应触发 OnError");
+        Assert.Equal(0, frameCount); // ← 当前代码失败：frameCount == 1
+    }
 }

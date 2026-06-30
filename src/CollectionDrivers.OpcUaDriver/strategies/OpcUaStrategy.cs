@@ -110,7 +110,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
 
     // ================ InitializeAsync ================
 
-    public override async Task<dynamic?> InitializeAsync()
+    public override async Task InitializeAsync()
     {
         _disposeCts = new CancellationTokenSource();
         _appConfig = CreateApplicationConfig();
@@ -199,7 +199,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
             throw;
         }
 
-        return null;
+        return;
     }
 
     private ApplicationConfiguration CreateApplicationConfig()

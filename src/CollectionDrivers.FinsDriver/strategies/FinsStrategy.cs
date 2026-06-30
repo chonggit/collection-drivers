@@ -59,7 +59,7 @@ public class FinsStrategy : Strategy, IDisposable
         return config;
     }
 
-    public override async Task<dynamic?> InitializeAsync()
+    public override async Task InitializeAsync()
     {
         _connection = new FinsConnection(
             _config.RemoteIp, _config.Port, _config.TimeoutMs);
@@ -76,7 +76,7 @@ public class FinsStrategy : Strategy, IDisposable
             IsHealthy = false;
         }
 
-        return null;
+        return;
     }
 
     public override async Task SweepAsync(int delayMs = -1)

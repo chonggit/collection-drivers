@@ -31,9 +31,9 @@ public class ScannerStrategy : Strategy, IDisposable
                 _config.Protocol.FrameDelimiterHex);
     }
 
-    public override async Task<dynamic?> InitializeAsync()
+    public override Task InitializeAsync()
     {
-        if (_initialized) return null;
+        if (_initialized) return Task.CompletedTask;
         _initialized = true;
 
         if (_config.Mode != "sync" && _config.Mode != "async")
@@ -48,7 +48,7 @@ public class ScannerStrategy : Strategy, IDisposable
             _connection.StartReceiveLoop();
         }
 
-        return null;
+        return Task.CompletedTask;
     }
 
     public override async Task SweepAsync(int delayMs = -1)

@@ -1,5 +1,3 @@
-#pragma warning disable CS1998
-
 using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
@@ -17,23 +15,17 @@ public class Handler
 
     public Machine Machine { get; }
 
-    public virtual async Task<dynamic?> CreateAsync()
+    public virtual Task CreateAsync()
     {
-        return null;
+        return Task.CompletedTask;
     }
 
-    public virtual async Task OnStrategySweepCompleteInternalAsync()
+    /// <summary>
+    /// 策略采集周期完成时调用。基类默认无操作，子类（如 TransportHandler）可重写
+    /// 以构建 payload 并通过 Transport 发送。
+    /// </summary>
+    public virtual Task OnStrategySweepCompleteInternalAsync()
     {
-        var onRet = await OnStrategySweepCompleteAsync(Machine);
-        await AfterSweepCompleteAsync(Machine, onRet);
-    }
-
-    protected virtual async Task<dynamic?> OnStrategySweepCompleteAsync(Machine machine)
-    {
-        return null;
-    }
-
-    protected virtual async Task AfterSweepCompleteAsync(Machine machine, dynamic? onSweepComplete)
-    {
+        return Task.CompletedTask;
     }
 }

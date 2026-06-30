@@ -1,4 +1,3 @@
-// using l99.driver.@base — removed, same namespace
 using Microsoft.Extensions.Logging;
 
 namespace CollectionDrivers.Common;
@@ -15,48 +14,38 @@ public class TransportHandler : Handler
     }
 
     /// <summary>
-    /// 构建 SWEEP_END payload，包含设备的 online/healthy 状态。
-    /// 返回 null 时 AfterSweepCompleteAsync 会跳过发送。
+    /// 构建 SWEEP_END payload 并通过 Transport 发送。
+    /// Transport 为 null 或 SendAsync 异常时安全降级，不中断采集循环。
     /// </summary>
-    protected override async Task<dynamic?> OnStrategySweepCompleteAsync(
-        Machine machine)
+    public override async Task OnStrategySweepCompleteInternalAsync()
     {
-        return new
+        if (Machine.Transport == null) return;
+
+        var payload = new
         {
             observation = new
             {
                 time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                machine = machine.Id,
+                machine = Machine.Id,
                 name = "sweep"
             },
             state = new
             {
                 data = new
                 {
-                    online = machine.StrategySuccess,
-                    healthy = machine.StrategyHealthy
+                    online = Machine.StrategySuccess,
+                    healthy = Machine.StrategyHealthy
                 }
             }
         };
-    }
-
-    /// <summary>
-    /// 将 SWEEP_END payload 发送到 Transport。
-    /// Transport 为 null（创建失败）或 SendAsync 异常时安全降级，不中断采集循环。
-    /// </summary>
-    protected override async Task AfterSweepCompleteAsync(
-        Machine machine, dynamic? onSweepComplete)
-    {
-        if (onSweepComplete == null) return;
-        if (machine.Transport == null) return;
 
         try
         {
-            await machine.Transport.SendAsync("SWEEP_END", onSweepComplete);
+            await Machine.Transport.SendAsync("SWEEP_END", payload);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "[{MachineId}] Transport SWEEP_END send failed", machine.Id);
+            Logger.LogError(ex, "[{MachineId}] Transport SWEEP_END send failed", Machine.Id);
         }
     }
 }

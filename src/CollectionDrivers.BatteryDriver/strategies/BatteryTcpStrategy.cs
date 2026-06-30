@@ -28,7 +28,7 @@ public class BatteryTcpStrategy : Strategy, IDisposable
     {
     }
 
-    public override async Task<dynamic?> InitializeAsync()
+    public override async Task InitializeAsync()
     {
         var rawConfig = Machine.Configuration.strategy;
         int port = rawConfig.ContainsKey("port") ? (int)rawConfig["port"] : 13000;
@@ -56,7 +56,7 @@ public class BatteryTcpStrategy : Strategy, IDisposable
             OnError?.Invoke(ex, $"Warning port {warningPort} unavailable");
         }
 
-        return null;
+        return;
     }
 
     private void OnRawDataReceived(byte[] raw)

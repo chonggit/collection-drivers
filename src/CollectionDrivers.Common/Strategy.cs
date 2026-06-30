@@ -1,5 +1,3 @@
-#pragma warning disable CS1998
-
 using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
@@ -21,14 +19,14 @@ public class Strategy
     public bool LastSuccess { get; protected set; }
     public bool IsHealthy { get; protected set; }
 
-    public virtual async Task<dynamic?> CreateAsync()
+    public virtual Task CreateAsync()
     {
-        return null;
+        return Task.CompletedTask;
     }
 
-    public virtual async Task<dynamic?> InitializeAsync()
+    public virtual Task InitializeAsync()
     {
-        return null;
+        return Task.CompletedTask;
     }
 
     public virtual async Task SweepAsync(int delayMs = -1)

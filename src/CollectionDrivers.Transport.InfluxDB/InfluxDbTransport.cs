@@ -37,7 +37,7 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
     /// <summary>
     /// 初始化 InfluxDB 客户端，解析变换模板配置。
     /// </summary>
-    public override async Task<dynamic?> CreateAsync()
+    public override async Task CreateAsync()
     {
         var transportCfg = Machine.Configuration.transport;
 
@@ -62,7 +62,7 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
             Logger.LogInformation("[{MachineId}] Loaded {Count} transformer(s)", Machine.Id, _transformLookup.Count);
         }
 
-        return null;
+        return;
     }
 
     /// <summary>

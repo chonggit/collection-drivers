@@ -1,5 +1,3 @@
-#pragma warning disable CS1998
-
 using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
@@ -18,9 +16,9 @@ public class Transport
 
     protected Machine Machine { get; }
 
-    public virtual async Task<dynamic?> CreateAsync()
+    public virtual Task CreateAsync()
     {
-        return null;
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -32,4 +30,3 @@ public class Transport
     {
     }
 }
-#pragma warning restore CS1998

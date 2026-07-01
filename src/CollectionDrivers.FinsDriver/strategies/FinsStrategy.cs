@@ -7,7 +7,7 @@ namespace CollectionDrivers.FinsDriver.Strategies;
 public class FinsStrategy : Strategy, IDisposable
 {
     private FinsConnection? _connection;
-    private readonly FinsConfig _config;
+    private readonly FinsStrategyOptions _config;
     private bool _reconnecting;
 
     public event Action<string, ushort[]>? OnData;
@@ -18,9 +18,9 @@ public class FinsStrategy : Strategy, IDisposable
         _config = ParseConfig(rawConfig);
     }
 
-    private static FinsConfig ParseConfig(dynamic rawConfig)
+    private static FinsStrategyOptions ParseConfig(dynamic rawConfig)
     {
-        var config = new FinsConfig();
+        var config = new FinsStrategyOptions();
         if (rawConfig == null) return config;
 
         IDictionary<string, object>? dict = rawConfig as IDictionary<string, object>;

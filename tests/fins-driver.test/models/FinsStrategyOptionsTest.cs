@@ -7,10 +7,10 @@ public class FinsConfigTest
     [Fact]
     public void FinsConfig_Defaults()
     {
-        var c = new FinsConfig();
-        Assert.Equal("", c.RemoteIp);
+        var c = new FinsStrategyOptions();
+        Assert.Equal("192.168.1.1", c.RemoteIp);
         Assert.Equal(9600, c.Port);
-        Assert.Equal(2000, c.TimeoutMs);
+        Assert.Equal(5000, c.TimeoutMs);
         Assert.Empty(c.Collectors);
     }
 

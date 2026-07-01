@@ -25,6 +25,14 @@ public abstract class Machine : IAsyncDisposable
         Logger.LogDebug($"[{Id}] Creating machine, enabled: {Enabled}");
     }
 
+    /// <summary>
+    /// DI 构造函数：仅注入 Logger。配置通过后续 Initialize(MachineOptions) 设置。
+    /// </summary>
+    protected Machine(ILogger? logger)
+    {
+        Logger = logger ?? LoggingFactory.CreateLogger(typeof(Machine).FullName);
+    }
+
     /// <summary>设备配置（YAML 反序列化的 dynamic 对象）</summary>
     public dynamic Configuration { get; }
 

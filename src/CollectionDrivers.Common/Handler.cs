@@ -19,6 +19,16 @@ public class Handler
         Machine = machine;
     }
 
+    /// <summary>
+    /// 构造 Handler（DI 注入 Logger + 机器上下文）。
+    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
+    /// </summary>
+    protected Handler(ILogger? logger, Machine machine)
+    {
+        Logger = logger ?? LoggingFactory.CreateLogger(GetType().FullName);
+        Machine = machine;
+    }
+
     /// <summary>所属设备实例</summary>
     public Machine Machine { get; }
 

@@ -1,6 +1,7 @@
 using System.Linq;
 using CollectionDrivers.Common;
 using CollectionDrivers.FinsDriver.Models;
+using Microsoft.Extensions.Logging;
 
 namespace CollectionDrivers.FinsDriver.Strategies;
 
@@ -8,6 +9,7 @@ public class FinsStrategy : Strategy, IDisposable
 {
     private FinsConnection? _connection;
     private readonly FinsStrategyOptions _config;
+    private readonly FinsStrategyOptions? _options;
     private bool _reconnecting;
 
     public event Action<string, ushort[]>? OnData;
@@ -16,6 +18,18 @@ public class FinsStrategy : Strategy, IDisposable
     {
         var rawConfig = machine.Configuration.strategy;
         _config = ParseConfig(rawConfig);
+    }
+
+    /// <summary>
+    /// DI 构造函数：ILogger + Machine + FINS Options。
+    /// </summary>
+    public FinsStrategy(
+        ILogger? logger,
+        Machine machine,
+        FinsStrategyOptions options) : base(logger, machine)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _config = _options;
     }
 
     private static FinsStrategyOptions ParseConfig(dynamic rawConfig)

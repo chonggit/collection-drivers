@@ -1,6 +1,8 @@
 using CollectionDrivers.BatteryDriver.Collectors;
 using CollectionDrivers.BatteryDriver.Connections;
+using CollectionDrivers.BatteryDriver.Models;
 using CollectionDrivers.Common;
+using Microsoft.Extensions.Logging;
 
 namespace CollectionDrivers.BatteryDriver.Strategies;
 
@@ -12,17 +14,30 @@ public class BatteryTcpStrategy : Strategy, IDisposable
     private readonly EquipmentAlarm _alarmCollector = new();
     private readonly CommandResult _commandResultCollector = new();
     private readonly CommandStatus _commandStatusCollector = new();
-    private readonly WarningData _warningDataCollector = new();
+    private readonly Collectors.WarningData _warningDataCollector = new();
+    private readonly BatteryTcpStrategyOptions? _options;
     private bool _disposed;
 
     public ChannelData ChannelDataCollector => _channelDataCollector;
     public EquipmentAlarm AlarmCollector => _alarmCollector;
     public CommandResult CommandResultCollector => _commandResultCollector;
     public CommandStatus CommandStatusCollector => _commandStatusCollector;
-    public WarningData WarningDataCollector => _warningDataCollector;
+    public Collectors.WarningData WarningDataCollector => _warningDataCollector;
 
     public BatteryTcpStrategy(Machine machine) : base(machine)
     {
+    }
+
+    /// <summary>
+    /// DI 构造函数：ILogger + Machine + 驱动专用 Options。
+    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
+    /// </summary>
+    public BatteryTcpStrategy(
+        ILogger? logger,
+        Machine machine,
+        BatteryTcpStrategyOptions options) : base(logger, machine)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     public override async Task InitializeAsync()

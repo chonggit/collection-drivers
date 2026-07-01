@@ -1,15 +1,17 @@
 using System.IO;
 using CollectionDrivers.Common;
+using CollectionDrivers.OpcUaDriver.Models;
+using Microsoft.Extensions.Logging;
 using Opc.Ua;
 using Opc.Ua.Client;
 using Opc.Ua.Configuration;
-using CollectionDrivers.OpcUaDriver.Models;
 
 namespace CollectionDrivers.OpcUaDriver.Strategies;
 
 public class OpcUaStrategy : Strategy, IAsyncDisposable
 {
     private readonly OpcUaConfig _config;
+    private readonly OpcUaStrategyOptions? _options;
     private ApplicationConfiguration? _appConfig;
     private Session? _session;
     private SessionReconnectHandler? _reconnectHandler;
@@ -25,6 +27,18 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
     {
         var rawConfig = machine.Configuration.strategy;
         _config = ParseConfig(rawConfig);
+    }
+
+    /// <summary>
+    /// DI 构造函数：ILogger + Machine + OPC UA Options。
+    /// </summary>
+    public OpcUaStrategy(
+        ILogger? logger,
+        Machine machine,
+        OpcUaStrategyOptions options) : base(logger, machine)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _config = ParseConfig(null!);  // 先设默认，后续 Phase 3 从 _options 直接构建
     }
 
     public static OpcUaConfig ParseConfig(dynamic rawConfig)

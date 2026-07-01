@@ -18,6 +18,7 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
 
     private InfluxDBClient _client = null!;
     private WriteApiAsync _writeApi = null!;
+    private readonly InfluxDbTransportOptions? _options;
 
     /// <summary>
     /// 配置中的变换器映射：键 → Scriban 模板文本。
@@ -32,6 +33,18 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
 
     public InfluxDbTransport(CollectionDrivers.Common.Machine machine) : base(machine)
     {
+    }
+
+    /// <summary>
+    /// DI 构造函数：ILogger + Machine + Transport Options。
+    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
+    /// </summary>
+    public InfluxDbTransport(
+        ILogger? logger,
+        CollectionDrivers.Common.Machine machine,
+        InfluxDbTransportOptions options) : base(logger, machine)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     /// <summary>

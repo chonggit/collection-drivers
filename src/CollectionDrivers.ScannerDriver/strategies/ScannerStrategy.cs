@@ -1,5 +1,6 @@
 using CollectionDrivers.Common;
 using CollectionDrivers.ScannerDriver.Models;
+using Microsoft.Extensions.Logging;
 
 namespace CollectionDrivers.ScannerDriver.Strategies;
 
@@ -7,6 +8,7 @@ public class ScannerStrategy : Strategy, IDisposable
 {
     private readonly TcpClientConnection _connection = new();
     private readonly ScannerConfig _config;
+    private readonly ScannerStrategyOptions? _options;
     private readonly BarcodeParser _parser;
     private readonly BarcodeDedup _dedup = new();
     private readonly byte[] _command;
@@ -18,6 +20,21 @@ public class ScannerStrategy : Strategy, IDisposable
     {
         var rawConfig = machine.Configuration.strategy;
         _config = ParseConfig(rawConfig);
+        _config.Name = machine.Id;
+        _parser = new BarcodeParser(_config.Protocol);
+        _command = StringToByteArray(_config.Protocol.SendCommandHex);
+    }
+
+    /// <summary>
+    /// DI 构造函数：ILogger + Machine + Scanner Options。
+    /// </summary>
+    public ScannerStrategy(
+        ILogger? logger,
+        Machine machine,
+        ScannerStrategyOptions options) : base(logger, machine)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _config = ParseConfig(null!);  // Phase 3 从 _options 直接构建
         _config.Name = machine.Id;
         _parser = new BarcodeParser(_config.Protocol);
         _command = StringToByteArray(_config.Protocol.SendCommandHex);

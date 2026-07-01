@@ -14,6 +14,13 @@ public class TransportHandler : Handler
     }
 
     /// <summary>
+    /// DI 构造函数：ILogger + Machine。
+    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
+    /// </summary>
+    public TransportHandler(ILogger? logger, Machine machine)
+        : base(logger, machine) { }
+
+    /// <summary>
     /// 构建 SWEEP_END payload 并通过所有已注册的 Transport 发送。
     /// 支持同时输出到多个 Transport（如 InfluxDB + MQTT）。
     /// 单个 Transport 发送失败时仅记录日志，不阻断其他 Transport 的发送。

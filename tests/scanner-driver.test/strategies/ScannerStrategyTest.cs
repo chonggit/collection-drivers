@@ -50,7 +50,7 @@ public class ScannerStrategyTest
         };
 
 #pragma warning disable CS8625
-        var machine = new ScannerMachine(null!, (object)config);
+        var machine = new Machine(null!, (object)config);
 #pragma warning restore CS8625
 
         var strategy = new ScannerStrategy(machine);

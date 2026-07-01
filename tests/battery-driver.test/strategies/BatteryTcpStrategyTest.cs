@@ -49,7 +49,7 @@ public class BatteryTcpStrategyTest
             type = new { sweep_ms = 1000 }
         });
 
-        var machine = new BatteryMachine(machines, config);
+        var machine = new Machine(machines, config);
         var strategy = new BatteryTcpStrategy(machine);
 
         await strategy.SweepAsync(1);
@@ -71,7 +71,7 @@ public class BatteryTcpStrategyTest
             type = new { sweep_ms = 1000 }
         });
 
-        var machine = new BatteryMachine(machines, config);
+        var machine = new Machine(machines, config);
 
         // 模拟 Machines.RunMachineAsync 当前逻辑：
         // while (!token.IsCancellationRequested) { sweep; }
@@ -119,7 +119,7 @@ public class BatteryTcpStrategyTest
             type = new { sweep_ms = 1000 }
         });
 
-        var machine = new BatteryMachine(machines, config);
+        var machine = new Machine(machines, config);
 
         // 模拟修复后的 RunMachineAsync：
         // while (!token.IsCancellationRequested && machine.Enabled) { sweep; }
@@ -336,7 +336,7 @@ battery_tcp:
             type = new { sweep_ms = 1000 }
         });
 
-        var machine = new BatteryMachine(machines, config);
+        var machine = new Machine(machines, config);
         var strategy = new BatteryTcpStrategy(machine);
 
         // RED 场景：直接构造的 Strategy 无 OnError 订阅者
@@ -370,7 +370,7 @@ battery_tcp:
         });
 
         var machines = (Machines)Activator.CreateInstance(typeof(Machines), true)!;
-        var machine = new BatteryMachine(machines, config);
+        var machine = new Machine(machines, config);
 
         // 通过 Machine.AddStrategyAsync 创建 —— 应自动订阅 OnError
         await machine.AddStrategyAsync(typeof(BatteryTcpStrategy));
@@ -417,7 +417,7 @@ battery_tcp:
         });
 
         var machines = (Machines)Activator.CreateInstance(typeof(Machines), true)!;
-        var machine = new BatteryMachine(machines, config);
+        var machine = new Machine(machines, config);
 
         // 注册第一个 Transport
         await machine.AddTransportAsync(typeof(TestTransport1));
@@ -449,7 +449,7 @@ battery_tcp:
         });
 
         var machines = (Machines)Activator.CreateInstance(typeof(Machines), true)!;
-        var machine = new BatteryMachine(machines, config);
+        var machine = new Machine(machines, config);
 
         await machine.AddTransportAsync(null!);
 

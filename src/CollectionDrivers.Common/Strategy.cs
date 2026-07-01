@@ -16,18 +16,17 @@ public abstract class Strategy
     /// <summary>构造策略实例，从 Machine 配置中读取 sweep 间隔</summary>
     protected Strategy(Machine machine)
     {
-        Logger = LoggingFactory.CreateLogger(GetType().FullName);
+        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(GetType().FullName);
         Machine = machine;
         SweepMs = machine.Configuration.type["sweep_ms"];
     }
 
     /// <summary>
     /// 构造策略实例（DI 注入 Logger + 机器上下文）。
-    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
     /// </summary>
     protected Strategy(ILogger? logger, Machine machine)
     {
-        Logger = logger ?? LoggingFactory.CreateLogger(GetType().FullName);
+        Logger = logger!;
         Machine = machine;
         SweepMs = machine.Configuration.type["sweep_ms"];
     }

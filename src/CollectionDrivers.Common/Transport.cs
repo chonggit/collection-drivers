@@ -16,18 +16,15 @@ public class Transport
     // ReSharper disable once UnusedParameter.Local
     protected Transport(Machine machine)
     {
-        Logger = LoggingFactory.CreateLogger(GetType().FullName);
+        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(GetType().FullName);
         Machine = machine;
     }
 
-    /// <summary>
-    /// 构造 Transport（DI 注入 Logger + 机器上下文）。
-    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
-    /// </summary>
+    /// <summary>构造 Transport（DI 注入 Logger + 机器上下文）。</summary>
     // ReSharper disable once UnusedParameter.Local
     protected Transport(ILogger? logger, Machine machine)
     {
-        Logger = logger ?? LoggingFactory.CreateLogger(GetType().FullName);
+        Logger = logger!;
         Machine = machine;
     }
 

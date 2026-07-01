@@ -12,7 +12,7 @@ public class Machines
 
     private Machines()
     {
-        _logger = LoggingFactory.CreateLogger(typeof(Machines).FullName);
+        _logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(typeof(Machines).FullName);
         _machines = new List<Machine>();
     }
 
@@ -89,7 +89,7 @@ public class Machines
 
     public static async Task<Machines> CreateMachines(dynamic config)
     {
-        var logger = LoggingFactory.CreateLogger(typeof(Machines).FullName);
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(typeof(Machines).FullName);
 
         var machineConfigs = new List<dynamic>();
 

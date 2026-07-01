@@ -24,20 +24,18 @@ public class Machine : IMachineContext, IAsyncDisposable
     /// </summary>
     /// <param name="machines">设备集合（历史参数，未使用）</param>
     /// <param name="configuration">YAML 配置反序列化后的动态对象</param>
-    protected Machine(Machines machines, object configuration)
+    public Machine(Machines machines, object configuration)
     {
         Configuration = configuration;
         _enabled = Configuration.machine.enabled;
-        Logger = LoggingFactory.CreateLogger(typeof(Machine).FullName);
+        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(typeof(Machine).FullName);
         Logger.LogDebug($"[{Id}] Creating machine, enabled: {Enabled}");
     }
 
-    /// <summary>
-    /// DI 构造函数：仅注入 Logger。配置通过后续 Initialize(MachineOptions) 设置。
-    /// </summary>
+    /// <summary>DI 构造函数：仅注入 Logger。</summary>
     protected Machine(ILogger? logger)
     {
-        Logger = logger ?? LoggingFactory.CreateLogger(typeof(Machine).FullName);
+        Logger = logger!;
     }
 
     /// <summary>设备配置（YAML 反序列化的 dynamic 对象）。迁移期间保留，Phase 5 删除。</summary>

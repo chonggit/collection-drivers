@@ -15,17 +15,16 @@ public class Handler : IHandler
     /// <summary>构造 Handler，关联到指定 Machine</summary>
     protected Handler(Machine machine)
     {
-        Logger = LoggingFactory.CreateLogger(GetType().FullName);
+        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(GetType().FullName);
         Machine = machine;
     }
 
     /// <summary>
     /// 构造 Handler（DI 注入 Logger + 机器上下文）。
-    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
     /// </summary>
     protected Handler(ILogger? logger, Machine machine)
     {
-        Logger = logger ?? LoggingFactory.CreateLogger(GetType().FullName);
+        Logger = logger!;
         Machine = machine;
     }
 

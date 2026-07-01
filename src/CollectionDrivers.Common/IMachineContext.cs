@@ -15,8 +15,8 @@ public interface IMachineContext
     /// <summary>采集间隔（毫秒）</summary>
     int SweepMs { get; }
 
-    /// <summary>数据处理组件</summary>
-    IHandler Handler { get; }
+    /// <summary>数据处理组件。未设置时可能为 null。</summary>
+    IHandler? Handler { get; }
 
     /// <summary>所有已注册的数据发送组件</summary>
     IReadOnlyList<Transport> Transports { get; }

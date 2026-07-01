@@ -5,6 +5,7 @@ using System.Threading;
 // ReSharper disable once CheckNamespace
 namespace CollectionDrivers.Common;
 
+[Obsolete("Phase 5 将删除。DI 化后用构造函数注入 ILogger<T> 替代。")]
 public static class LoggingFactory
 {
     private static ILoggerFactory _factory = NullLoggerFactory.Instance;

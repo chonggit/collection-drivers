@@ -7,7 +7,7 @@ namespace CollectionDrivers.Common;
 /// 数据处理基类。Strategy 每次采集完成后调用 OnStrategySweepCompleteInternalAsync。
 /// 子类（如 TransportHandler）重写以构建 payload 并通过 Transport 发送到外部系统。
 /// </summary>
-public class Handler
+public class Handler : IHandler
 {
     /// <summary>日志记录器</summary>
     protected readonly ILogger Logger;

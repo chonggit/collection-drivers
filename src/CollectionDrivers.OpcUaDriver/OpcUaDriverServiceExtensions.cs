@@ -17,7 +17,9 @@ public static class OpcUaDriverServiceExtensions
             MachineType:         typeof(Machine),
             StrategyType:        typeof(OpcUaStrategy),
             HandlerType:         typeof(TransportHandler),
-            StrategyOptionsType: typeof(OpcUaStrategyOptions)
+            StrategyOptionsType:   typeof(OpcUaStrategyOptions),
+            TransportType:         null,
+            TransportOptionsType:  null
         ));
         return services;
     }

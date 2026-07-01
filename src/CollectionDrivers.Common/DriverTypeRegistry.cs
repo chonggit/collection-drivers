@@ -33,6 +33,10 @@ public class DriverTypeRegistry
         /// <summary>Handler 具体类型</summary>
         Type HandlerType,
         /// <summary>Strategy Options 类型</summary>
-        Type StrategyOptionsType
+        Type StrategyOptionsType,
+        /// <summary>Transport 具体类型（可为 null，表示不创建 Transport）</summary>
+        Type? TransportType,
+        /// <summary>Transport Options 类型（可为 null）</summary>
+        Type? TransportOptionsType
     );
 }

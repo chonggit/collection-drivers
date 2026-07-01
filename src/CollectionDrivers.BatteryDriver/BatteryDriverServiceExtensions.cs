@@ -17,7 +17,9 @@ public static class BatteryDriverServiceExtensions
             MachineType:         typeof(Machine),
             StrategyType:        typeof(BatteryTcpStrategy),
             HandlerType:         typeof(TransportHandler),
-            StrategyOptionsType: typeof(BatteryTcpStrategyOptions)
+            StrategyOptionsType: typeof(BatteryTcpStrategyOptions),
+            TransportType:       null,
+            TransportOptionsType: null
         ));
         return services;
     }

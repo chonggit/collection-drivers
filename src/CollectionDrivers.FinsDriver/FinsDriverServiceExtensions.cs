@@ -17,7 +17,9 @@ public static class FinsDriverServiceExtensions
             MachineType:         typeof(Machine),
             StrategyType:        typeof(FinsStrategy),
             HandlerType:         typeof(TransportHandler),
-            StrategyOptionsType: typeof(FinsStrategyOptions)
+            StrategyOptionsType:   typeof(FinsStrategyOptions),
+            TransportType:         null,
+            TransportOptionsType:  null
         ));
         return services;
     }

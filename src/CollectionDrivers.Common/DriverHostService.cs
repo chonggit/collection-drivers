@@ -1,48 +1,66 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using YamlDotNet.Serialization;
-using YamlDotNet.Core;
-using YamlDotNet.Core.Events;
+using Microsoft.Extensions.Options;
 
 namespace CollectionDrivers.Common;
 
 /// <summary>
-/// 驱动宿主服务。通过 .NET IConfiguration 解析配置文件路径（支持环境变量覆盖），
-/// 使用 YamlDotNet 解析 YAML 内容并启动所有机器采集循环。
-/// 初始化时将宿主提供的 ILoggerFactory 注入全局 LoggingFactory。
+/// 驱动宿主服务。通过 IConfiguration 接收宿主配置，
+/// 使用 IMachineScopeFactory 为每台机器创建独立 Scope 并启动采集循环。
 /// </summary>
 public class DriverHostService : BackgroundService
 {
-    /// <summary>
-    /// 构造函数注入 ILoggerFactory，桥接到 LoggingFactory 静态工厂，
-    /// 使所有驱动组件（Strategy/Handler/Transport/Machine）获得结构化日志输出。
-    /// </summary>
-    public DriverHostService(ILoggerFactory loggerFactory)
+    private readonly IConfiguration _config;
+    private readonly IOptions<CollectionDriverOptions> _options;
+    private readonly IMachineScopeFactory _scopeFactory;
+    private readonly ILogger<DriverHostService> _logger;
+
+    /// <summary>构造函数注入</summary>
+    public DriverHostService(
+        IConfiguration config,
+        IOptions<CollectionDriverOptions> options,
+        IMachineScopeFactory scopeFactory,
+        ILogger<DriverHostService> logger)
     {
-        LoggingFactory.SetProvider(loggerFactory);
+        _config = config;
+        _options = options;
+        _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    /// <inheritdoc/>
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        // 使用标准 .NET 配置管道解析配置文件路径
-        // 优先级：环境变量 COLLECTION_DRIVERS_CONFIG > 默认值 config.machines.yml
-        // 注意：如需命令行支持，应注入 IConfiguration（宿主已配置命令行 provider）
-        var appConfig = new ConfigurationBuilder()
-            .AddEnvironmentVariables()
-            .Build();
+        var machines = _options.Value.Machines.Where(m => m.Enabled).ToList();
+        _logger.LogInformation("Starting {Count} machine(s)", machines.Count);
 
-        var yamlConfigPath = appConfig["COLLECTION_DRIVERS_CONFIG"]
-            ?? "config.machines.yml";
+        var rootSection = _config.GetSection("CollectionDrivers");
+        var tasks = new List<Task>();
 
-        var yaml = await File.ReadAllTextAsync(yamlConfigPath, stoppingToken);
+        for (int i = 0; i < _options.Value.Machines.Count; i++)
+        {
+            var machineCfg = _options.Value.Machines[i];
+            if (!machineCfg.Enabled) continue;
 
-        var deserializer = new DeserializerBuilder().Build();
-        var parser = new Parser(new StringReader(yaml));
-        var mergingParser = new MergingParser(parser);
-        var config = deserializer.Deserialize(mergingParser);
+            // 填充 IConfiguration 引用——连接 IOptions 和 IConfiguration 的关键桥接
+            machineCfg.Configuration = rootSection.GetSection($"Machines:{i}");
 
-        var machines = await Machines.CreateMachines(config);
-        await machines.RunAsync(stoppingToken);
+            tasks.Add(Task.Run(async () =>
+            {
+                try
+                {
+                    await using var scope = _scopeFactory.CreateScope(machineCfg);
+                    await scope.RunAsync(ct);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[{MachineId}] Machine crashed", machineCfg.Id);
+                }
+            }, ct));
+        }
+
+        await Task.WhenAll(tasks);
     }
 }

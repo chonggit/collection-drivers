@@ -17,7 +17,9 @@ public static class ScannerDriverServiceExtensions
             MachineType:         typeof(Machine),
             StrategyType:        typeof(ScannerStrategy),
             HandlerType:         typeof(TransportHandler),
-            StrategyOptionsType: typeof(ScannerStrategyOptions)
+            StrategyOptionsType:   typeof(ScannerStrategyOptions),
+            TransportType:         null,
+            TransportOptionsType:  null
         ));
         return services;
     }

@@ -9,7 +9,7 @@ namespace CollectionDrivers.Common;
 public class MachineOptions
 {
     /// <summary>机器标识符</summary>
-    public string Id { get; set; } = "";
+    public string Id { get; set; } = string.Empty;
 
     /// <summary>是否启用</summary>
     public bool Enabled { get; set; }

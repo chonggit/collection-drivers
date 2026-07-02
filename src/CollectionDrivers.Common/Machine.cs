@@ -1,6 +1,7 @@
 // ReSharper disable once CheckNamespace
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CollectionDrivers.Common;
 
@@ -10,7 +11,7 @@ namespace CollectionDrivers.Common;
 /// </summary>
 public class Machine : IMachineContext, IAsyncDisposable
 {
-    protected readonly ILogger Logger;
+    protected readonly ILogger Logger = NullLogger.Instance;
 
     private string? _id;
     private bool _enabled;
@@ -28,7 +29,6 @@ public class Machine : IMachineContext, IAsyncDisposable
     {
         Configuration = configuration;
         _enabled = Configuration.machine.enabled;
-        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(typeof(Machine).FullName);
         Logger.LogDebug($"[{Id}] Creating machine, enabled: {Enabled}");
     }
 

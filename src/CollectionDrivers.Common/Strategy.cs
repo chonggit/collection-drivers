@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace CollectionDrivers.Common;
@@ -9,14 +10,13 @@ namespace CollectionDrivers.Common;
 /// </summary>
 public abstract class Strategy
 {
-    protected readonly ILogger Logger;
+    protected readonly ILogger Logger = NullLogger.Instance;
     /// <summary>采集间隔（毫秒），从配置 type.sweep_ms 读取</summary>
     protected readonly int SweepMs;
 
     /// <summary>构造策略实例，从 Machine 配置中读取 sweep 间隔</summary>
     protected Strategy(Machine machine)
     {
-        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(GetType().FullName);
         Machine = machine;
         SweepMs = machine.Configuration.type["sweep_ms"];
     }

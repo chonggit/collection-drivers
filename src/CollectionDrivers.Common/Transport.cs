@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace CollectionDrivers.Common;
@@ -10,13 +11,12 @@ namespace CollectionDrivers.Common;
 public class Transport
 {
     /// <summary>日志记录器</summary>
-    protected readonly ILogger Logger;
+    protected readonly ILogger Logger = NullLogger.Instance;
 
     /// <summary>构造 Transport，关联到指定 Machine</summary>
     // ReSharper disable once UnusedParameter.Local
     protected Transport(Machine machine)
     {
-        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(GetType().FullName);
         Machine = machine;
     }
 

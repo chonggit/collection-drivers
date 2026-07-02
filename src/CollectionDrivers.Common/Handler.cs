@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace CollectionDrivers.Common;
@@ -10,12 +11,11 @@ namespace CollectionDrivers.Common;
 public class Handler : IHandler
 {
     /// <summary>日志记录器</summary>
-    protected readonly ILogger Logger;
+    protected readonly ILogger Logger = NullLogger.Instance;
 
     /// <summary>构造 Handler，关联到指定 Machine</summary>
     protected Handler(Machine machine)
     {
-        Logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance.CreateLogger(GetType().FullName);
         Machine = machine;
     }
 

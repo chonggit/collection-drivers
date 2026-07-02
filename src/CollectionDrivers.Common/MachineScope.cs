@@ -33,7 +33,7 @@ internal class MachineScope : IMachineScope
         var strategyOptions = BindOptions(
             config.Configuration?.GetSection("Strategy"), entry.StrategyOptionsType);
         var transportOptions = BindOptions(
-            config.Configuration?.GetSection("Transport"), entry.TransportOptionsType);
+            config.Configuration?.GetSection("Transport"), entry.TransportOptionsType!);
 
         // Step 3: 构造 Machine
         var machineLogger = sp.GetRequiredService(

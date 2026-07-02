@@ -31,14 +31,7 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
     private string _bucket = string.Empty;
     private string _org = string.Empty;
 
-    public InfluxDbTransport(CollectionDrivers.Common.Machine machine) : base(machine)
-    {
-    }
-
-    /// <summary>
-    /// DI 构造函数：ILogger + Machine + Transport Options。
-    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
-    /// </summary>
+    /// <summary>DI 构造函数：ILogger + Machine + Transport Options。</summary>
     public InfluxDbTransport(
         ILogger? logger,
         CollectionDrivers.Common.Machine machine,
@@ -52,27 +45,17 @@ public class InfluxDbTransport : CollectionDrivers.Common.Transport, IDisposable
     /// </summary>
     public override async Task CreateAsync()
     {
-        var transportCfg = Machine.Configuration.transport;
-
-        _bucket = transportCfg.ContainsKey("bucket") ? (string)transportCfg["bucket"] : "default";
-        _org = transportCfg.ContainsKey("org") ? (string)transportCfg["org"] : "default";
-
-        var host = transportCfg.ContainsKey("host") ? (string)transportCfg["host"] : "http://localhost:8086";
-        var token = transportCfg.ContainsKey("token") ? (string)transportCfg["token"] : string.Empty;
-
-        Logger.LogInformation("[{MachineId}] Creating InfluxDB client: {Host}, bucket={Bucket}, org={Org}",
-            Machine.Id, host, _bucket, _org);
-
-        _client = InfluxDBClientFactory.Create(host, token);
-        _writeApi = _client.GetWriteApiAsync();
-
-        if (transportCfg.ContainsKey("transformers") && transportCfg["transformers"] != null)
+        if (_options != null)
         {
-            _transformLookup = (transportCfg["transformers"] as IDictionary<object, object>)
-                ?.ToDictionary(kv => (string)kv.Key, kv => (string)kv.Value)
-                ?? new Dictionary<string, string>();
+            _bucket = _options.Bucket;
+            _org = _options.Org;
+            _transformLookup = _options.Transformers;
 
-            Logger.LogInformation("[{MachineId}] Loaded {Count} transformer(s)", Machine.Id, _transformLookup.Count);
+            Logger.LogInformation("[{MachineId}] Creating InfluxDB client: {Host}, bucket={Bucket}, org={Org}",
+                Machine.Id, _options.Host, _bucket, _org);
+
+            _client = InfluxDBClientFactory.Create(_options.Host, _options.Token);
+            _writeApi = _client.GetWriteApiAsync();
         }
     }
     /// <summary>

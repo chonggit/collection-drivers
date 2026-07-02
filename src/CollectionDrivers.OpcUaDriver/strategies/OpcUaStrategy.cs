@@ -23,15 +23,7 @@ public class OpcUaStrategy : Strategy, IAsyncDisposable
     public event Action<string, Dictionary<string, object>>? OnData;
     public event Action<bool, string>? OnConnectionState;
 
-    public OpcUaStrategy(Machine machine) : base(machine)
-    {
-        var rawConfig = machine.Configuration.strategy;
-        _config = ParseConfig(rawConfig);
-    }
-
-    /// <summary>
-    /// DI 构造函数：ILogger + Machine + OPC UA Options。
-    /// </summary>
+    /// <summary>DI 构造函数：ILogger + Machine + OPC UA Options。</summary>
     public OpcUaStrategy(
         ILogger? logger,
         Machine machine,

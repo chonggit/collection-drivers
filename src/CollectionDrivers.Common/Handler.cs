@@ -13,18 +13,10 @@ public class Handler : IHandler
     /// <summary>日志记录器</summary>
     protected readonly ILogger Logger = NullLogger.Instance;
 
-    /// <summary>构造 Handler，关联到指定 Machine</summary>
-    protected Handler(Machine machine)
-    {
-        Machine = machine;
-    }
-
-    /// <summary>
-    /// 构造 Handler（DI 注入 Logger + 机器上下文）。
-    /// </summary>
+    /// <summary>构造 Handler（DI 注入 Logger + 机器上下文）。</summary>
     protected Handler(ILogger? logger, Machine machine)
     {
-        Logger = logger!;
+        Logger = logger ?? NullLogger.Instance;
         Machine = machine;
     }
 

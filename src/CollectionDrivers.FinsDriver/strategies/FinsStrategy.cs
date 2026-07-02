@@ -14,15 +14,7 @@ public class FinsStrategy : Strategy, IDisposable
 
     public event Action<string, ushort[]>? OnData;
 
-    public FinsStrategy(Machine machine) : base(machine)
-    {
-        var rawConfig = machine.Configuration.strategy;
-        _config = ParseConfig(rawConfig);
-    }
-
-    /// <summary>
-    /// DI 构造函数：ILogger + Machine + FINS Options。
-    /// </summary>
+    /// <summary>DI 构造函数：ILogger + Machine + FINS Options。</summary>
     public FinsStrategy(
         ILogger? logger,
         Machine machine,

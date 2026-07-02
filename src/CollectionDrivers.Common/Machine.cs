@@ -20,31 +20,16 @@ public class Machine : IMachineContext, IAsyncDisposable
     private Handler? _handler;
     private List<Transport> _transports = new();
 
-    /// <summary>
-    /// 构造设备实例。从 configuration 中读取 machine.enabled 和 machine.id。
-    /// </summary>
-    /// <param name="machines">设备集合（历史参数，未使用）</param>
-    /// <param name="configuration">YAML 配置反序列化后的动态对象</param>
-    public Machine(Machines machines, object configuration)
-    {
-        Configuration = configuration;
-        _enabled = Configuration.machine.enabled;
-        Logger.LogDebug($"[{Id}] Creating machine, enabled: {Enabled}");
-    }
-
     /// <summary>DI 构造函数：仅注入 Logger。</summary>
-    protected Machine(ILogger? logger)
+    public Machine(ILogger? logger)
     {
         Logger = logger!;
     }
 
-    /// <summary>设备配置（YAML 反序列化的 dynamic 对象）。迁移期间保留，Phase 5 删除。</summary>
-    public dynamic? Configuration { get; }
-
     // ── IMachineContext 实现 ──
 
-    /// <summary>设备标识符。迁移期间优先 _id，fallback 到 Configuration</summary>
-    public string Id => _id ?? Configuration?.machine?.id ?? "";
+    /// <summary>设备标识符。</summary>
+    public string Id => _id ?? throw new InvalidOperationException("Machine not initialized. Call Initialize(MachineOptions) first.");
 
     /// <summary>设备是否启用。</summary>
     public bool Enabled
@@ -53,10 +38,8 @@ public class Machine : IMachineContext, IAsyncDisposable
         private set => _enabled = value;
     }
 
-    /// <summary>采集间隔（毫秒）。迁移期间优先 _sweepMs，fallback 到 Configuration</summary>
-    public int SweepMs => _sweepMs > 0
-        ? _sweepMs
-        : (Configuration?.type?["sweep_ms"] ?? 5000);
+    /// <summary>采集间隔（毫秒）。</summary>
+    public int SweepMs => _sweepMs;
 
     /// <summary>数据处理组件（IHandler 接口）。返回 null 当 Handler 未设置。</summary>
     public IHandler? Handler => _handler;

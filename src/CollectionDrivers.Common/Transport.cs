@@ -13,18 +13,11 @@ public class Transport
     /// <summary>日志记录器</summary>
     protected readonly ILogger Logger = NullLogger.Instance;
 
-    /// <summary>构造 Transport，关联到指定 Machine</summary>
-    // ReSharper disable once UnusedParameter.Local
-    protected Transport(Machine machine)
-    {
-        Machine = machine;
-    }
-
     /// <summary>构造 Transport（DI 注入 Logger + 机器上下文）。</summary>
     // ReSharper disable once UnusedParameter.Local
     protected Transport(ILogger? logger, Machine machine)
     {
-        Logger = logger!;
+        Logger = logger ?? NullLogger.Instance;
         Machine = machine;
     }
 

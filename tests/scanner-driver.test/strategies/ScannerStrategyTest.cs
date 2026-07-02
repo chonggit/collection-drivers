@@ -1,5 +1,8 @@
 using CollectionDrivers.Common;
+using CollectionDrivers.ScannerDriver.Models;
 using CollectionDrivers.ScannerDriver.Strategies;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CollectionDrivers.ScannerDriver.Test.Strategies;
 
@@ -50,10 +53,18 @@ public class ScannerStrategyTest
         };
 
 #pragma warning disable CS8625
-        var machine = new Machine(null!, (object)config);
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<ScannerStrategy>.Instance;
+        var machine = new Machine((ILogger?)null);
+        machine.Initialize(new MachineOptions { Id = "test", Enabled = true, SweepMs = 100 });
 #pragma warning restore CS8625
 
-        var strategy = new ScannerStrategy(machine);
+        var strategy = new ScannerStrategy(logger, machine, new ScannerStrategyOptions
+        {
+            Host = "127.0.0.1",
+            Port = 19999,
+            Mode = "async",
+            Protocol = new ScannerProtocolOptions { SendCommandHex = "AABB" }
+        });
 
         // async 模式：SweepAsync 应快速返回并上报健康状态
         await strategy.SweepAsync(1);

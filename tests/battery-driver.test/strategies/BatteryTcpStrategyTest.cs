@@ -2,6 +2,8 @@ using CollectionDrivers.BatteryDriver.Collectors;
 using CollectionDrivers.BatteryDriver.Models;
 using CollectionDrivers.BatteryDriver.Strategies;
 using CollectionDrivers.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
 using YamlDotNet.Serialization;
 
@@ -9,6 +11,17 @@ namespace CollectionDrivers.BatteryDriver.Test.Strategies;
 
 public class BatteryTcpStrategyTest
 {
+    private static (Machine, BatteryTcpStrategy) CreateStrategy(
+        string id = "test", int sweepMs = 100, BatteryTcpStrategyOptions? opts = null)
+    {
+        var logger = NullLogger<BatteryTcpStrategy>.Instance;
+        var machine = new Machine((ILogger?)null);
+        machine.Initialize(new MachineOptions { Id = id, Enabled = true, SweepMs = sweepMs });
+        var options = opts ?? new BatteryTcpStrategyOptions();
+        var strategy = new BatteryTcpStrategy(logger, machine, options);
+        return (machine, strategy);
+    }
+
     [Fact]
     public void ChannelDataCollector_Parses_0xFD_Frame()
     {
@@ -28,54 +41,24 @@ public class BatteryTcpStrategyTest
         Assert.Equal(1, result.Value.CabinetIndex);
     }
 
-    /// <summary>
-    /// Bug F14 复现：BatteryTcpStrategy 有 public Dispose() 但未实现 IDisposable。
-    /// </summary>
     [Fact]
     public void Strategy_ImplementsIDisposable()
     {
-        Assert.True(typeof(BatteryTcpStrategy).IsAssignableTo(typeof(IDisposable)),
-            "BatteryTcpStrategy 应实现 IDisposable 以支持资源释放");
+        Assert.True(typeof(BatteryTcpStrategy).IsAssignableTo(typeof(IDisposable)));
     }
 
     [Fact]
     public async Task SweepAsync_DoesNotThrow()
     {
-        var machines = (Machines)Activator.CreateInstance(typeof(Machines), true)!;
-
-        dynamic config = JObject.FromObject(new
-        {
-            machine = new { id = "test", enabled = true },
-            type = new { sweep_ms = 1000 }
-        });
-
-        var machine = new Machine(machines, config);
-        var strategy = new BatteryTcpStrategy(machine);
-
+        var (machine, strategy) = CreateStrategy();
         await strategy.SweepAsync(1);
     }
 
-    /// <summary>
-    /// Bug F15 验证：Machine.Disable() 设置 Enabled=false 后，
-    /// 不检查 Enabled 的循环会继续执行，检查了的会在下次迭代退出。
-    /// 本测试证明 RunMachineAsync 缺少 Enabled 检查的机制缺陷。
-    /// </summary>
     [Fact]
     public async Task LoopWithoutEnabledCheck_KeepsRunningAfterDisable()
     {
-        var machines = (Machines)Activator.CreateInstance(typeof(Machines), true)!;
+        var (machine, _) = CreateStrategy("test-disable", 1000);
 
-        dynamic config = JObject.FromObject(new
-        {
-            machine = new { id = "test-disable", enabled = true },
-            type = new { sweep_ms = 1000 }
-        });
-
-        var machine = new Machine(machines, config);
-
-        // 模拟 Machines.RunMachineAsync 当前逻辑：
-        // while (!token.IsCancellationRequested) { sweep; }
-        // 缺少 && machine.Enabled 检查
         int sweepsAfterDisable = 0;
         var cts = new CancellationTokenSource();
 
@@ -83,9 +66,8 @@ public class BatteryTcpStrategyTest
         {
             while (!cts.Token.IsCancellationRequested)
             {
-                await Task.Delay(10); // 模拟 sweep
-                if (!machine.Enabled)
-                    sweepsAfterDisable++;
+                await Task.Delay(10);
+                if (!machine.Enabled) sweepsAfterDisable++;
             }
         });
 
@@ -96,33 +78,18 @@ public class BatteryTcpStrategyTest
         sweepsAfterDisable = 0;
         await Task.Delay(150);
 
-        // RED 基线：不检查 Enabled 的循环在禁用后继续迭代
         Assert.True(sweepsAfterDisable > 0,
-            $"禁用后循环继续迭代 {sweepsAfterDisable} 次 — 证明缺失 Enabled 检查的影响");
+            $"禁用后循环继续迭代 {sweepsAfterDisable} 次");
 
         cts.Cancel();
         await loop;
     }
 
-    /// <summary>
-    /// Bug F15 修复验证：检查 Enabled 的循环在 Disable() 后应停止迭代。
-    /// RunMachineAsync 修复后加入 && machine.Enabled 条件。
-    /// </summary>
     [Fact]
     public async Task LoopWithEnabledCheck_StopsAfterDisable()
     {
-        var machines = (Machines)Activator.CreateInstance(typeof(Machines), true)!;
+        var (machine, _) = CreateStrategy("test-disable-fix", 1000);
 
-        dynamic config = JObject.FromObject(new
-        {
-            machine = new { id = "test-disable-fix", enabled = true },
-            type = new { sweep_ms = 1000 }
-        });
-
-        var machine = new Machine(machines, config);
-
-        // 模拟修复后的 RunMachineAsync：
-        // while (!token.IsCancellationRequested && machine.Enabled) { sweep; }
         int sweepsAfterDisable = 0;
         var cts = new CancellationTokenSource();
 
@@ -142,7 +109,6 @@ public class BatteryTcpStrategyTest
         int sweepsBeforeDisable = sweepsAfterDisable;
         await Task.Delay(150);
 
-        // GREEN: 检查 Enabled 的循环在禁用后停止（允许最多 1 次正在执行的迭代）
         Assert.True(sweepsAfterDisable - sweepsBeforeDisable <= 1,
             $"禁用后最多 1 次飞行中迭代：禁用前 {sweepsBeforeDisable}，禁用后 {sweepsAfterDisable}");
 
@@ -150,21 +116,6 @@ public class BatteryTcpStrategyTest
         await loop;
     }
 
-    // ============================================================
-    // 发现14 复现：(int) 强制拆箱 vs Convert.ToInt32
-    // ============================================================
-
-    /// <summary>
-    /// 发现14 端到端复现：使用 YamlDotNet 16.3.0 默认反序列化一个包含 port 整数的 YAML，
-    /// 验证反序列化后的值类型是否为 string（YamlDotNet 默认行为），
-    /// 并证明 (int) 强制转换会抛出 InvalidCastException。
-    ///
-    /// 实际 YAML 配置示例：
-    ///   battery_tcp:
-    ///     port: 13000
-    ///     warning_port: 13100
-    ///     heartbeat_timeout_s: 60
-    /// </summary>
     [Fact]
     public void YamlDotNet_DefaultDeserialize_ProducesStringValues()
     {
@@ -177,148 +128,47 @@ battery_tcp:
         var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
         var config = deserializer.Deserialize<object>(yaml);
 
-        // YamlDotNet 默认反序列化到 object 产生 Dictionary<object, object>
         var root = Assert.IsType<Dictionary<object, object>>(config);
         var strategy = Assert.IsType<Dictionary<object, object>>(root["battery_tcp"]);
 
-        var portValue = strategy["port"];
-        var warningPortValue = strategy["warning_port"];
-        var timeoutValue = strategy["heartbeat_timeout_s"];
+        Assert.Equal(typeof(string), strategy["port"].GetType());
+        Assert.Throws<InvalidCastException>(() => { var _ = (int)strategy["port"]; });
 
-        // 记录实际类型 — YamlDotNet 16.3.0 默认将标量反序列化为 string
-        var portType = portValue.GetType();
-        var timeoutType = timeoutValue.GetType();
-
-        // 断言：YamlDotNet 16.3.0 默认将整数标量反序列化为 string
-        // （如果此断言失败，说明 YamlDotNet 版本行为已变更）
-        Assert.Equal(typeof(string), portType);
-
-        // 无论 YamlDotNet 将整数值反序列化为什么类型，
-        // 只要不是 boxed int，(int) 强制转换就会崩渍
-        if (portType == typeof(string))
-        {
-            // string → (int) 抛出 InvalidCastException
-            Assert.Throws<InvalidCastException>(() => { var _ = (int)portValue; });
-        }
-        else if (portType == typeof(long))
-        {
-            // long → (int) 抛出 InvalidCastException
-            Assert.Throws<InvalidCastException>(() => { var _ = (int)portValue; });
-        }
-        else if (portType == typeof(int))
-        {
-            // int → (int) 正常工作（但 YamlDotNet 默认不产生 int）
-            var _ = (int)portValue;
-        }
-
-        // Convert.ToInt32 始终正确处理所有类型
-        int port = Convert.ToInt32(portValue);
-        int warningPort = Convert.ToInt32(warningPortValue);
-        int timeout = Convert.ToInt32(timeoutValue);
-
+        int port = Convert.ToInt32(strategy["port"]);
         Assert.Equal(13000, port);
-        Assert.Equal(13100, warningPort);
-        Assert.Equal(60, timeout);
     }
 
-    // ============================================================
-    // 发现14 复现：(int) 强制拆箱 vs Convert.ToInt32（原有测试）
-    // BatteryTcpStrategy.InitializeAsync 使用 (int)rawConfig["port"]
-    // 当 YamlDotNet 反序列化值为 string 或 long 时抛出 InvalidCastException
-    // OpcUaStrategy 使用 Convert.ToInt32 才是正确做法
-    // ============================================================
-
-    /// <summary>
-    /// 发现14：对 boxed string 做 (int) 强制转换会抛出 InvalidCastException，
-    /// 而 Convert.ToInt32 可以正确处理。
-    /// 这是 BatteryTcpStrategy.InitializeAsync 的核心 bug ——
-    /// 当 YamlDotNet 默认将 YAML 标量反序列化为 string 时直接崩溃。
-    /// </summary>
     [Fact]
     public void CastInt_OnBoxedString_ThrowsInvalidCastException()
     {
         object boxedString = "13000";
-
-        // RED: (int) 强制转换 boxed string 直接抛出 InvalidCastException
-        Assert.Throws<InvalidCastException>(() =>
-        {
-            var _ = (int)boxedString;
-        });
-
-        // GREEN: Convert.ToInt32 正确处理 string
-        int result = Convert.ToInt32(boxedString);
-        Assert.Equal(13000, result);
+        Assert.Throws<InvalidCastException>(() => { var _ = (int)boxedString; });
+        Assert.Equal(13000, Convert.ToInt32(boxedString));
     }
 
-    /// <summary>
-    /// 发现14 补充：对 boxed long 做 (int) 强制转换同样抛出 InvalidCastException。
-    /// YamlDotNet 可能将大整数反序列化为 long，此时 (int) 同样崩溃。
-    /// </summary>
     [Fact]
     public void CastInt_OnBoxedLong_ThrowsInvalidCastException()
     {
         object boxedLong = 13000L;
-
-        // RED: (int) 无法拆箱 boxed long（类型不匹配）
-        Assert.Throws<InvalidCastException>(() =>
-        {
-            var _ = (int)boxedLong;
-        });
-
-        // GREEN: Convert.ToInt32 正确处理 long
-        int result = Convert.ToInt32(boxedLong);
-        Assert.Equal(13000, result);
+        Assert.Throws<InvalidCastException>(() => { var _ = (int)boxedLong; });
+        Assert.Equal(13000, Convert.ToInt32(boxedLong));
     }
 
-    /// <summary>
-    /// 发现14 正对照：当值是 boxed int 时 (int) 正常运作。
-    /// 证明问题的根源在于值类型的不确定性（YamlDotNet 反序列化产物），
-    /// 而非 (int) 语法本身有问题。
-    /// </summary>
     [Fact]
     public void CastInt_OnBoxedInt_Succeeds()
     {
         object boxedInt = 13000;
-        int result = (int)boxedInt;
-        Assert.Equal(13000, result);
+        Assert.Equal(13000, (int)boxedInt);
     }
 
-    // ============================================================
-    // 发现11 验证：基类 Strategy.SweepAsync 是否是死代码
-    // ============================================================
-
-    /// <summary>
-    /// 发现11 RED: 原基类 virtual SweepAsync 为死代码（无子类调用 base.SweepAsync）。
-    /// GREEN: 修复后将基类方法和类均改为 abstract，消除死代码并强制子类显式实现。
-    /// </summary>
     [Fact]
     public void BaseSweepAsync_IsAbstract()
     {
-        // GREEN: Strategy 类本身为 abstract（不能直接 new）
-        Assert.True(typeof(Strategy).IsAbstract,
-            "Strategy 应为 abstract，防止直接实例化");
-
-        // GREEN: SweepAsync 为 abstract（子类必须重写）
-        var sweepMethod = typeof(Strategy).GetMethod("SweepAsync");
-        Assert.NotNull(sweepMethod);
-        Assert.True(sweepMethod!.IsAbstract,
-            "SweepAsync 应为 abstract，消除死代码并强制子类实现");
-
-        // BatteryTcpStrategy 必须 override 此方法
-        var batteryMethod = typeof(BatteryTcpStrategy).GetMethod("SweepAsync");
-        Assert.NotNull(batteryMethod);
-        Assert.True(batteryMethod!.DeclaringType == typeof(BatteryTcpStrategy),
-            "BatteryTcpStrategy 应 override abstract SweepAsync");
+        Assert.True(typeof(Strategy).IsAbstract);
+        Assert.True(typeof(Strategy).GetMethod("SweepAsync")!.IsAbstract);
+        Assert.True(typeof(BatteryTcpStrategy).GetMethod("SweepAsync")!.DeclaringType == typeof(BatteryTcpStrategy));
     }
 
-    // ============================================================
-    // 发现4 验证：Strategy.OnError 是否有任何订阅者
-    // ============================================================
-
-    /// <summary>
-    /// 发现4 RED：直接创建 Strategy 时 OnError 无订阅者。
-    /// 所有 15+ 处 RaiseOnError 调用通过 ?.Invoke 短路，异常静默丢弃。
-    /// </summary>
     [Fact]
     public void Strategy_OnError_HasNoSubscribers_WhenCreatedDirectly()
     {
@@ -326,37 +176,36 @@ battery_tcp:
             System.Reflection.BindingFlags.Instance
             | System.Reflection.BindingFlags.NonPublic
             | System.Reflection.BindingFlags.Public);
-
         Assert.NotNull(onErrorField);
 
-        var machines = (Machines)Activator.CreateInstance(typeof(Machines), true)!;
-        dynamic config = JObject.FromObject(new
+        var (_, strategy) = CreateStrategy("test-onerror");
+        Assert.Null(onErrorField!.GetValue(strategy));
+    }
+
+    [Fact]
+    public async Task Strategy_OnError_HasSubscribers_AfterMachineScopeSetup()
+    {
+        var onErrorField = typeof(Strategy).GetField("OnError",
+            System.Reflection.BindingFlags.Instance
+            | System.Reflection.BindingFlags.NonPublic
+            | System.Reflection.BindingFlags.Public);
+        Assert.NotNull(onErrorField);
+
+        var (machine, strategy) = CreateStrategy("test-onerror-subscribed");
+
+        // 模拟 Machine.AddStrategyAsync 的 OnError 订阅
+        strategy.OnError += (ex, ctx) => { };
+
+        Assert.NotNull(onErrorField!.GetValue(strategy));
+
+        var raiseMethod = typeof(Strategy).GetMethod("RaiseOnError",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.NotNull(raiseMethod);
+
+        var exception = Record.Exception(() =>
         {
-            machine = new { id = "test-onerror", enabled = true },
-            type = new { sweep_ms = 1000 }
+            raiseMethod!.Invoke(strategy, new object[] { new InvalidOperationException("test error"), "test context" });
         });
-
-        var machine = new Machine(machines, config);
-        var strategy = new BatteryTcpStrategy(machine);
-
-        // RED 场景：直接构造的 Strategy 无 OnError 订阅者
-        var delegateValue = onErrorField!.GetValue(strategy);
-        Assert.Null(delegateValue);
-    }
-
-    /// <summary>
-    /// 测试用 Transport 子类 #1 — 无实际操作，仅验证注册逻辑。
-    /// </summary>
-    private class TestTransport1 : Transport
-    {
-        public TestTransport1(Machine machine) : base(machine) { }
-    }
-
-    /// <summary>
-    /// 测试用 Transport 子类 #2 — 无实际操作，仅验证多 Transport 累加逻辑。
-    /// </summary>
-    private class TestTransport2 : Transport
-    {
-        public TestTransport2(Machine machine) : base(machine) { }
+        Assert.Null(exception);
     }
 }

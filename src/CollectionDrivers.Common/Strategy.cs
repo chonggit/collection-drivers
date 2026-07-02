@@ -10,31 +10,26 @@ namespace CollectionDrivers.Common;
 /// </summary>
 public abstract class Strategy
 {
+    /// <summary>日志记录器</summary>
     protected readonly ILogger Logger = NullLogger.Instance;
-    /// <summary>采集间隔（毫秒），从配置 type.sweep_ms 读取</summary>
+
+    /// <summary>采集间隔（毫秒）</summary>
     protected readonly int SweepMs;
 
-    /// <summary>构造策略实例，从 Machine 配置中读取 sweep 间隔</summary>
-    protected Strategy(Machine machine)
-    {
-        Machine = machine;
-        SweepMs = machine.Configuration.type["sweep_ms"];
-    }
-
-    /// <summary>
-    /// 构造策略实例（DI 注入 Logger + 机器上下文）。
-    /// </summary>
+    /// <summary>构造策略实例（DI 注入 Logger + 机器上下文）。</summary>
     protected Strategy(ILogger? logger, Machine machine)
     {
-        Logger = logger!;
+        Logger = logger ?? NullLogger.Instance;
         Machine = machine;
-        SweepMs = machine.Configuration.type["sweep_ms"];
+        SweepMs = machine.SweepMs;
     }
 
     /// <summary>所属设备实例</summary>
     public Machine Machine { get; }
+
     /// <summary>上次采集是否成功</summary>
     public bool LastSuccess { get; protected set; }
+
     /// <summary>策略当前是否健康</summary>
     public bool IsHealthy { get; protected set; }
 

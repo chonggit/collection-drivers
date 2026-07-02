@@ -24,14 +24,7 @@ public class BatteryTcpStrategy : Strategy, IDisposable
     public CommandStatus CommandStatusCollector => _commandStatusCollector;
     public Collectors.WarningData WarningDataCollector => _warningDataCollector;
 
-    public BatteryTcpStrategy(Machine machine) : base(machine)
-    {
-    }
-
-    /// <summary>
-    /// DI 构造函数：ILogger + Machine + 驱动专用 Options。
-    /// Phase 2 使用 Machine，Phase 3 改为 IMachineContext。
-    /// </summary>
+    /// <summary>DI 构造函数：ILogger + Machine + 驱动专用 Options。</summary>
     public BatteryTcpStrategy(
         ILogger? logger,
         Machine machine,
@@ -42,11 +35,9 @@ public class BatteryTcpStrategy : Strategy, IDisposable
 
     public override async Task InitializeAsync()
     {
-        var rawConfig = Machine.Configuration.strategy;
-        int port = rawConfig.ContainsKey("port") ? Convert.ToInt32(rawConfig["port"]) : 13000;
-        int warningPort = rawConfig.ContainsKey("warning_port") ? Convert.ToInt32(rawConfig["warning_port"]) : 13100;
-        int heartbeatTimeout = rawConfig.ContainsKey("heartbeat_timeout_s")
-            ? Convert.ToInt32(rawConfig["heartbeat_timeout_s"]) : 60;
+        int port = _options?.Port ?? 13000;
+        int warningPort = _options?.WarningPort ?? 13100;
+        int heartbeatTimeout = _options?.HeartbeatTimeoutS ?? 60;
 
         _connection = new TcpConnection(port, heartbeatTimeout);
         _connection.OnDataReceived += OnRawDataReceived;

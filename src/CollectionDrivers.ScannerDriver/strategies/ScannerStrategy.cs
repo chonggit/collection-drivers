@@ -16,26 +16,34 @@ public class ScannerStrategy : Strategy, IDisposable
 
     public event Action<string, string>? OnData;
 
-    public ScannerStrategy(Machine machine) : base(machine)
-    {
-        var rawConfig = machine.Configuration.strategy;
-        _config = ParseConfig(rawConfig);
-        _config.Name = machine.Id;
-        _parser = new BarcodeParser(_config.Protocol);
-        _command = StringToByteArray(_config.Protocol.SendCommandHex);
-    }
-
-    /// <summary>
-    /// DI 构造函数：ILogger + Machine + Scanner Options。
-    /// </summary>
+    /// <summary>DI 构造函数：ILogger + Machine + Scanner Options。</summary>
     public ScannerStrategy(
         ILogger? logger,
         Machine machine,
         ScannerStrategyOptions options) : base(logger, machine)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        _config = ParseConfig(null!);  // Phase 3 从 _options 直接构建
-        _config.Name = machine.Id;
+        _config = new ScannerConfig
+        {
+            Name = machine.Id,
+            Host = _options.Host,
+            Port = _options.Port,
+            Mode = _options.Mode,
+            RetryCount = _options.RetryCount,
+            ConnectTimeoutMs = _options.ConnectTimeoutMs,
+            ReceiveTimeoutMs = _options.ReceiveTimeoutMs,
+            DedupEnabled = _options.DedupEnabled,
+            Protocol = new ProtocolConfig
+            {
+                SendCommandHex = _options.Protocol.SendCommandHex,
+                ResponseEncoding = _options.Protocol.ResponseEncoding,
+                BarcodeRegex = _options.Protocol.BarcodeRegex,
+                RegexGroupIndex = _options.Protocol.RegexGroupIndex,
+                FrameDelimiterHex = _options.Protocol.FrameDelimiterHex,
+                RemovePrefixes = _options.Protocol.RemovePrefixes,
+                RemoveSuffixes = _options.Protocol.RemoveSuffixes
+            }
+        };
         _parser = new BarcodeParser(_config.Protocol);
         _command = StringToByteArray(_config.Protocol.SendCommandHex);
 
